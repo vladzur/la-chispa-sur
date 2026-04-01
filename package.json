@@ -12,6 +12,8 @@
     "@tiptap/extension-image": "^3.22.0",
     "@tiptap/starter-kit": "^3.22.0",
     "@tiptap/vue-3": "^3.22.0",
+    "@unhead/vue": "^2.1.12",
+    "@vueuse/head": "^2.0.0",
     "firebase": "^12.11.0",
     "pinia": "^3.0.4",
     "vue": "^3.5.30",

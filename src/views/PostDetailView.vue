@@ -31,10 +31,28 @@
 import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import { getPost, type Post } from '../services/postService';
+import { useHead } from '@vueuse/head';
 
 const route = useRoute();
 const post = ref<Post | null>(null);
 const loading = ref(true);
+
+const extractText = (html: string) => {
+  if (!html) return '';
+  return html.replace(/<[^>]*>?/gm, '').replace(/&nbsp;/g, ' ').trim();
+};
+
+useHead({
+  title: () => post.value?.title || 'Noticia',
+  meta: [
+    { name: 'description', content: () => post.value ? extractText(post.value.content).substring(0, 160) : '' },
+    { property: 'og:title', content: () => post.value?.title },
+    { property: 'og:description', content: () => post.value ? extractText(post.value.content).substring(0, 160) : '' },
+    { property: 'og:image', content: () => post.value?.headerImageUrl },
+    { property: 'og:type', content: 'article' },
+    { name: 'twitter:image', content: () => post.value?.headerImageUrl }
+  ]
+});
 
 onMounted(async () => {
   const id = route.params.id as string;

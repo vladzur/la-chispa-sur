@@ -19,6 +19,16 @@
 import { ref, onMounted } from 'vue';
 import { getPosts, type Post } from '../services/postService';
 import PostCard from '../components/PostCard.vue';
+import { useHead } from '@vueuse/head';
+
+useHead({
+  title: 'Inicio',
+  meta: [
+    { property: 'og:title', content: 'La Chispa Sur | Inicio' },
+    { name: 'description', content: 'Diario independiente con las últimas noticias de la región sur.' },
+    { property: 'og:description', content: 'Diario independiente con las últimas noticias de la región sur.' }
+  ]
+});
 
 const posts = ref<Post[]>([]);
 const loading = ref(true);

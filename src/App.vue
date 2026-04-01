@@ -14,8 +14,19 @@
 import { onMounted } from 'vue';
 import { useAuthStore } from './stores/auth';
 import Navbar from './components/Navbar.vue';
+import { useHead } from '@vueuse/head';
 
 const authStore = useAuthStore();
+
+useHead({
+  titleTemplate: (title) => title ? `${title} | La Chispa Sur` : 'La Chispa Sur',
+  meta: [
+    { name: 'description', content: 'Diario independiente con las últimas noticias de la región sur.' },
+    { property: 'og:site_name', content: 'La Chispa Sur' },
+    { property: 'og:type', content: 'website' },
+    { name: 'twitter:card', content: 'summary_large_image' },
+  ]
+});
 
 onMounted(() => {
   authStore.init();
