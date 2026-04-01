@@ -10,6 +10,8 @@
   },
   "dependencies": {
     "@tiptap/extension-image": "^3.22.0",
+    "@tiptap/extension-link": "^3.22.0",
+    "@tiptap/extension-underline": "^3.22.0",
     "@tiptap/starter-kit": "^3.22.0",
     "@tiptap/vue-3": "^3.22.0",
     "@unhead/vue": "^2.1.12",
