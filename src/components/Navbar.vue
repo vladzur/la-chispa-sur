@@ -19,11 +19,7 @@
               Salir
             </button>
           </template>
-          <template v-else-if="!authStore.loading && !authStore.user">
-            <router-link to="/login" class="px-3 py-2 rounded-md hover:bg-secondary transition-colors text-gray-300 text-sm">
-              Editor Login
-            </router-link>
-          </template>
+
         </div>
       </div>
     </div>
