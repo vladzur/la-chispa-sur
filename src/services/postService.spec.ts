@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import { getPosts, getPost, invalidateCache, createPost, updatePost, deletePost } from './postService';
-import { getDocs, getDoc, setDoc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { getPosts, getPost, invalidateCache, createPost } from './postService';
+import { getDocs, getDoc, setDoc } from 'firebase/firestore';
 
 describe('Post Service', () => {
 
