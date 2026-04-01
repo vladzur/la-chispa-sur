@@ -136,7 +136,7 @@ onMounted(async () => {
     postId.value = route.params.id as string;
     
     saving.value = true;
-    const post = await getPost(postId.value);
+    const post = await getPost(postId.value, true);
     saving.value = false;
     
     if (post) {
