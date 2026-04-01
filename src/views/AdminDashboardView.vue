@@ -41,7 +41,7 @@ const loading = ref(true);
 
 const loadPosts = async () => {
   loading.value = true;
-  posts.value = await getPosts();
+  posts.value = await getPosts(true);
   loading.value = false;
 };
 
