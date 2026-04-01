@@ -27,11 +27,16 @@
 
       <!-- Tiptap Editor (WYSIWYG) -->
       <div class="border border-gray-300 rounded-md overflow-hidden bg-white shadow-sm flex flex-col min-h-[400px]">
-        <div v-if="editor" class="bg-gray-50 border-b border-gray-200 p-2 flex space-x-2">
+        <div v-if="editor" class="bg-gray-50 border-b border-gray-200 p-2 flex flex-wrap gap-2">
           <button type="button" @click="editor.chain().focus().toggleBold().run()" :class="{ 'bg-gray-200': editor.isActive('bold') }" class="px-3 py-1 rounded text-sm font-bold hover:bg-gray-200 border border-gray-300 font-sans">Bold</button>
           <button type="button" @click="editor.chain().focus().toggleItalic().run()" :class="{ 'bg-gray-200': editor.isActive('italic') }" class="px-3 py-1 rounded text-sm italic hover:bg-gray-200 border border-gray-300 font-serif">Italic</button>
+          <button type="button" @click="editor.chain().focus().toggleUnderline().run()" :class="{ 'bg-gray-200': editor.isActive('underline') }" class="px-3 py-1 rounded text-sm underline hover:bg-gray-200 border border-gray-300 font-sans">Underline</button>
+          <button type="button" @click="editor.chain().focus().toggleStrike().run()" :class="{ 'bg-gray-200': editor.isActive('strike') }" class="px-3 py-1 rounded text-sm line-through hover:bg-gray-200 border border-gray-300 font-sans">Strike</button>
           <button type="button" @click="editor.chain().focus().toggleHeading({ level: 2 }).run()" :class="{ 'bg-gray-200': editor.isActive('heading', { level: 2 }) }" class="px-3 py-1 rounded text-sm font-bold hover:bg-gray-200 border border-gray-300 font-sans">H2</button>
           <button type="button" @click="editor.chain().focus().toggleHeading({ level: 3 }).run()" :class="{ 'bg-gray-200': editor.isActive('heading', { level: 3 }) }" class="px-3 py-1 rounded text-sm font-bold hover:bg-gray-200 border border-gray-300 font-sans">H3</button>
+          <button type="button" @click="editor.chain().focus().toggleBulletList().run()" :class="{ 'bg-gray-200': editor.isActive('bulletList') }" class="px-3 py-1 rounded text-sm hover:bg-gray-200 border border-gray-300 font-sans">• Lista</button>
+          <button type="button" @click="editor.chain().focus().toggleOrderedList().run()" :class="{ 'bg-gray-200': editor.isActive('orderedList') }" class="px-3 py-1 rounded text-sm hover:bg-gray-200 border border-gray-300 font-sans">1. Lista</button>
+          <button type="button" @click="setLink" :class="{ 'bg-gray-200': editor.isActive('link') }" class="px-3 py-1 rounded text-sm hover:bg-gray-200 border border-gray-300 font-sans">Enlace</button>
         </div>
         
         <editor-content :editor="editor" class="flex-grow p-4 focus:outline-none prose prose-lg max-w-none text-text-body font-serif" />
@@ -53,6 +58,8 @@ import { useRoute, useRouter } from 'vue-router';
 import { useEditor, EditorContent } from '@tiptap/vue-3';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
+import Underline from '@tiptap/extension-underline';
+import Link from '@tiptap/extension-link';
 import { getPost, createPost, updatePost } from '../services/postService';
 import { uploadHeaderImage } from '../services/imageService';
 import { useAuthStore } from '../stores/auth';
@@ -74,8 +81,27 @@ const editor = useEditor({
   extensions: [
     StarterKit.configure({
       heading: { levels: [2, 3] },
+      bulletList: {
+        HTMLAttributes: {
+          class: 'list-disc ml-6 space-y-1',
+        },
+      },
+      orderedList: {
+        HTMLAttributes: {
+          class: 'list-decimal ml-6 space-y-1',
+        },
+      },
+      listItem: {
+        HTMLAttributes: {
+          class: 'pl-1',
+        },
+      },
     }),
     Image,
+    Underline,
+    Link.configure({
+      openOnClick: false,
+    }),
   ],
   content: '<p>Empieza a escribir la noticia aquí...</p>',
   editorProps: {
@@ -84,6 +110,25 @@ const editor = useEditor({
     },
   },
 });
+
+const setLink = () => {
+  const previousUrl = editor.value?.getAttributes('link').href;
+  const url = window.prompt('URL del enlace', previousUrl || '');
+
+  // cancelled
+  if (url === null) {
+    return;
+  }
+
+  // empty
+  if (url === '') {
+    editor.value?.chain().focus().extendMarkRange('link').unsetLink().run();
+    return;
+  }
+
+  // update link
+  editor.value?.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
+};
 
 onMounted(async () => {
   if (route.params.id) {
