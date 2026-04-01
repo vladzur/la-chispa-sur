@@ -31,7 +31,7 @@ const props = defineProps<{ post: Post }>();
 const formattedDate = computed(() => {
   if (!props.post.createdAt) return '';
   const date = props.post.createdAt.toDate ? props.post.createdAt.toDate() : new Date(props.post.createdAt);
-  return new Intl.DateTimeFormat('es-AR', { day: 'numeric', month: 'long', year: 'numeric' }).format(date);
+  return new Intl.DateTimeFormat('es-CL', { day: 'numeric', month: 'long', year: 'numeric' }).format(date);
 });
 
 const stripHtml = (html: string) => {

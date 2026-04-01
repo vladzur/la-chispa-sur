@@ -68,7 +68,7 @@ onMounted(async () => {
 const formatDate = (dateVal: any) => {
   if (!dateVal) return '';
   const date = dateVal.toDate ? dateVal.toDate() : new Date(dateVal);
-  return new Intl.DateTimeFormat('es-AR', { day: 'numeric', month: 'long', year: 'numeric' }).format(date);
+  return new Intl.DateTimeFormat('es-CL', { day: 'numeric', month: 'long', year: 'numeric' }).format(date);
 };
 </script>
 
@@ -84,10 +84,17 @@ const formatDate = (dateVal: any) => {
   color: var(--color-primary);
   font-family: var(--font-sans);
   font-weight: 700;
+  font-size: 2rem;
+  line-height: 1.2;
   margin-top: 2.5rem;
+  margin-bottom: 1.25rem;
 }
 :deep(.prose h3) {
   font-family: var(--font-sans);
   font-weight: 600;
+  font-size: 1.5rem;
+  line-height: 1.3;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
 }
 </style>
