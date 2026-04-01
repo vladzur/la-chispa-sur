@@ -50,7 +50,7 @@ onMounted(loadPosts);
 const formatDate = (dateVal: any) => {
   if (!dateVal) return '';
   const date = dateVal.toDate ? dateVal.toDate() : new Date(dateVal);
-  return new Intl.DateTimeFormat('es-AR', { dateStyle: 'medium' }).format(date);
+  return new Intl.DateTimeFormat('es-CL', { dateStyle: 'medium' }).format(date);
 };
 
 const handleDelete = async (id: string) => {
