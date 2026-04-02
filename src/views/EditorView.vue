@@ -209,7 +209,7 @@ const savePost = async () => {
       await createPost({
         ...postData,
         authorId: authStore.user?.uid || 'unknown',
-        authorName: authStore.user?.email || 'Redactor',
+        authorName: authStore.userName || authStore.user?.email || 'Redactor',
       });
     }
 
