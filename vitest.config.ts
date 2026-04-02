@@ -6,7 +6,7 @@ export default mergeConfig(
   defineConfig({
     test: {
       environment: 'jsdom',
-      exclude: ['node_modules', 'dist'],
+      exclude: ['node_modules', 'dist', 'functions/**'],
       setupFiles: ['./src/test/setup.ts'],
       coverage: {
         provider: 'v8',
@@ -14,6 +14,7 @@ export default mergeConfig(
         exclude: [
           'node_modules/',
           'dist/',
+          'functions/',
           'src/test/',
           '**/*.spec.ts',
           '**/*.config.ts'
