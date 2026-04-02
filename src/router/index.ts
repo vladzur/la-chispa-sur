@@ -1,7 +1,9 @@
+import { logEvent } from 'firebase/analytics';
+import { analytics } from '../firebase/config';
 import { createRouter, createWebHistory } from 'vue-router';
 import HomeView from '../views/HomeView.vue';
 import { useAuthStore } from '../stores/auth';
-import { getCurrentUser } from '../firebase/auth-helper'; // we'll create a helper to await user state
+import { getCurrentUser } from '../firebase/auth-helper';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -45,14 +47,11 @@ router.beforeEach(async (to, _from, next) => {
       next({ name: 'login' });
     } else {
       const authStore = useAuthStore();
-      // By the time getCurrentUser resolves, auth store should ideally have resolved role
-      // but to be safe, we check if isAdmin was set.
-      // Wait a tick for the store to update if it hasn't
       if (to.matched.some(record => record.meta.requiresAdmin)) {
          if (authStore.isAdmin) {
            next();
          } else {
-           next({ name: 'home' }) // or unauthorized page
+           next({ name: 'home' })
          }
       } else {
          next();
@@ -60,6 +59,15 @@ router.beforeEach(async (to, _from, next) => {
     }
   } else {
     next();
+  }
+});
+
+router.afterEach((to) => {
+  if (analytics) {
+    logEvent(analytics, 'page_view', {
+      page_path: to.path,
+      page_location: window.location.href,
+    });
   }
 });
 
