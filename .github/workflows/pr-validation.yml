@@ -39,6 +39,14 @@ jobs:
           VITE_FIREBASE_MESSAGING_SENDER_ID: 'mock-sender'
           VITE_FIREBASE_APP_ID: 'mock-id'
           VITE_FIREBASE_MEASUREMENT_ID: 'mock-measurement'
+          
+      - name: Install Functions dependencies
+        run: npm install
+        working-directory: ./functions
+
+      - name: Verify Functions build
+        run: npm run build
+        working-directory: ./functions
         
       - name: Run tests
         run: npm run test
