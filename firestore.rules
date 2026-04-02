@@ -1,0 +1,47 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // 1. Función para verificar si el usuario logueado es Administrador
+    function isAdmin() {
+      return request.auth != null && 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // 2. Colección de Noticias (posts)
+    match /posts/{postId} {
+      // Cualquier persona que entre al sitio puede leer las noticias
+      allow read: if true; 
+      
+      // SOLO un admin verificado puede crear o eliminar noticias
+      allow create, delete: if isAdmin();
+
+      // Update: admin puede modificar todo.
+      // Usuarios anónimos SOLO pueden incrementar kudosCount (ningún otro campo).
+      allow update: if isAdmin() || isKudosOnlyUpdate();
+    }
+    
+    // 3. Colección de Usuarios y Roles (users)
+    match /users/{userId} {
+      // Un usuario solo puede leer su propio documento para saber si es admin o no
+      allow read: if request.auth != null && request.auth.uid == userId;
+      
+      // Nadie puede crear o modificar roles desde la aplicación web directamente.
+      // Así mantenemos la aplicación mucho más segura (solo tú das permisos en la Consola)
+      allow write: if false; 
+    }
+    
+    // 4. Se deniega el acceso a todo lo demás por seguridad
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Verifica que la escritura solo modifica kudosCount y que el valor sube
+    function isKudosOnlyUpdate() {
+      let incoming = request.resource.data;
+      let existing = resource.data;
+      return incoming.diff(existing).affectedKeys().hasOnly(['kudosCount'])
+          && incoming.kudosCount > existing.kudosCount;
+    }
+  }
+}
