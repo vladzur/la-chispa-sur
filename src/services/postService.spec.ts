@@ -108,3 +108,63 @@ describe('Post Service', () => {
   });
 
 });
+
+// ── addKudos ──────────────────────────────────────────────────────────────────
+import { addKudos } from './postService';
+import { updateDoc } from 'firebase/firestore';
+
+describe('addKudos', () => {
+
+  const MOCK_TIMESTAMP = { toDate: () => new Date('2026-04-01T12:00:00Z') };
+
+  const fakeDocsWithKudos = [
+    {
+      id: 'post1',
+      data: () => ({
+        title: 'Title 1',
+        content: 'Content 1',
+        kudosCount: 5,
+        createdAt: MOCK_TIMESTAMP,
+        updatedAt: MOCK_TIMESTAMP
+      })
+    }
+  ];
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    sessionStorage.clear();
+    invalidateCache();
+  });
+
+  it('llama a updateDoc con increment para actualizar kudosCount en Firestore', async () => {
+    const { increment } = await import('firebase/firestore');
+    (updateDoc as any).mockResolvedValue(undefined);
+
+    await addKudos('post1', 1);
+
+    expect(updateDoc).toHaveBeenCalledTimes(1);
+    // Verifica que el segundo argumento contiene kudosCount con un valor increment
+    const callArg = (updateDoc as any).mock.calls[0][1];
+    expect(callArg).toHaveProperty('kudosCount');
+    // El mock de increment devuelve un objeto con el field sentinel  
+    expect(increment).toHaveBeenCalledWith(1);
+  });
+
+  it('parchea la caché en memoria sin necesidad de refetch a Firestore', async () => {
+    (getDocs as any).mockResolvedValue({ docs: fakeDocsWithKudos });
+    (updateDoc as any).mockResolvedValue(undefined);
+
+    // Cargar caché primero
+    const postsBefore = await getPosts();
+    expect(postsBefore[0].kudosCount).toBe(5);
+
+    // Dar 1 kudo
+    await addKudos('post1', 1);
+
+    // El caché en memoria debe reflejar +1 SIN llamar de nuevo a getDocs
+    const postsAfter = await getPosts();
+    expect(getDocs).toHaveBeenCalledTimes(1); // Solo la carga inicial
+    expect(postsAfter[0].kudosCount).toBe(6); // Parcheado en memoria
+  });
+
+});

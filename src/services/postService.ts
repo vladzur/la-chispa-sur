@@ -1,4 +1,4 @@
-import { collection, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, query, orderBy, serverTimestamp } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, query, orderBy, serverTimestamp, increment } from 'firebase/firestore';
 import { db } from '../firebase/config';
 
 export interface Post {
@@ -11,6 +11,7 @@ export interface Post {
   createdAt: any;
   updatedAt: any;
   published?: boolean;
+  kudosCount?: number;
 }
 
 const CACHE_TTL = 30 * 60 * 1000; // 30 minutes
@@ -119,4 +120,20 @@ export const deletePost = async (id: string): Promise<void> => {
   const docRef = doc(db, 'posts', id);
   await deleteDoc(docRef);
   invalidateCache();
+};
+
+export const addKudos = async (postId: string, amount: number): Promise<void> => {
+  const docRef = doc(db, 'posts', postId);
+  await updateDoc(docRef, { kudosCount: increment(amount) });
+
+  // Patch in-memory cache to keep the UI in sync without a full refetch
+  if (memoryCache) {
+    const idx = memoryCache.posts.findIndex(p => p.id === postId);
+    if (idx !== -1) {
+      memoryCache.posts[idx] = {
+        ...memoryCache.posts[idx],
+        kudosCount: (memoryCache.posts[idx].kudosCount ?? 0) + amount
+      };
+    }
+  }
 };

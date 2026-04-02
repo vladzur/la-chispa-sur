@@ -36,6 +36,9 @@
     </figure>
 
     <div class="prose prose-lg md:prose-xl max-w-none text-text-body font-serif leading-relaxed" v-html="post.content"></div>
+
+    <!-- Sección de kudos -->
+    <KudosButton :post-id="post.id" :initial-count="post.kudosCount ?? 0" />
   </article>
 
   <div v-else-if="loading" class="flex justify-center py-40">
@@ -50,6 +53,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
+import KudosButton from '../components/KudosButton.vue';
 import { useRoute } from 'vue-router';
 import { getPost, type Post } from '../services/postService';
 import { useHead } from '@vueuse/head';
