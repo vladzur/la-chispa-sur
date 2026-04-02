@@ -18,7 +18,12 @@
       <ul class="divide-y divide-gray-200">
         <li v-for="post in posts" :key="post.id" class="px-6 py-4 hover:bg-gray-50 flex justify-between items-center transition-colors">
           <div class="flex flex-col">
-            <span class="text-lg font-semibold text-text-heading">{{ post.title }}</span>
+            <div class="flex items-center">
+              <span class="text-lg font-semibold text-text-heading">{{ post.title }}</span>
+              <span v-if="post.published === false" class="ml-3 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                Borrador
+              </span>
+            </div>
             <span class="text-sm text-gray-500 mt-1 uppercase tracking-wide">{{ formatDate(post.createdAt) }}</span>
           </div>
           <div class="flex space-x-3">
