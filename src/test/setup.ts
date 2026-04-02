@@ -52,8 +52,10 @@ vi.mock('firebase/firestore', () => {
     orderBy: vi.fn(),
     limit: vi.fn(),
     serverTimestamp: vi.fn(() => 'mocked-timestamp'),
+    increment: vi.fn((n: number) => ({ __increment: n })),
   };
 });
+
 
 // Mock para configuración local
 vi.mock('../firebase/config', () => {
