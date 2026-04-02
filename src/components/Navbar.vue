@@ -3,8 +3,9 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex justify-between h-16 items-center">
         <div class="flex-shrink-0">
-          <router-link to="/" class="text-2xl font-serif font-bold tracking-tight">
-            La Chispa Sur
+          <router-link to="/" class="flex items-center gap-3 text-2xl font-sans font-bold tracking-tight">
+            <img src="/logo.svg" alt="La Chispa Sur Logo" class="h-20 w-auto" />
+            <span class="hidden sm:inline">La Chispa Sur</span>
           </router-link>
         </div>
         <div class="flex items-center space-x-4">
