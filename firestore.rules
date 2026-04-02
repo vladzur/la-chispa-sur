@@ -41,7 +41,7 @@ service cloud.firestore {
       let incoming = request.resource.data;
       let existing = resource.data;
       return incoming.diff(existing).affectedKeys().hasOnly(['kudosCount'])
-          && incoming.kudosCount > existing.kudosCount;
+          && incoming.kudosCount > existing.get('kudosCount', 0);
     }
   }
 }
