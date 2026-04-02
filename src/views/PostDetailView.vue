@@ -53,8 +53,11 @@ import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import { getPost, type Post } from '../services/postService';
 import { useHead } from '@vueuse/head';
+import { useAuthStore } from '../stores/auth';
+import { watch } from 'vue';
 
 const route = useRoute();
+const authStore = useAuthStore();
 const post = ref<Post | null>(null);
 const loading = ref(true);
 const currentUrl = ref('');
@@ -84,15 +87,34 @@ useHead({
   ]
 });
 
-onMounted(async () => {
-  currentUrl.value = typeof window !== 'undefined' ? window.location.href : '';
+const loadPost = async () => {
   const id = route.params.id as string;
   try {
-    post.value = await getPost(id);
+    const fetchedPost = await getPost(id);
+    // Verificar visibilidad
+    if (fetchedPost && fetchedPost.published === false && !authStore.isAdmin) {
+      post.value = null;
+    } else {
+      post.value = fetchedPost;
+    }
   } catch (error) {
     console.error("Error loading post:", error);
   } finally {
     loading.value = false;
+  }
+};
+
+onMounted(async () => {
+  currentUrl.value = typeof window !== 'undefined' ? window.location.href : '';
+  if (!authStore.loading) {
+    await loadPost();
+  }
+});
+
+// React to auth state changes to avoid race conditions on direct URL access
+watch(() => authStore.loading, async (newVal) => {
+  if (!newVal) {
+    await loadPost();
   }
 });
 

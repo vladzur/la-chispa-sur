@@ -43,9 +43,14 @@
       </div>
 
       <!-- Footer Buttons -->
-      <div class="flex justify-end pt-4 border-t border-gray-200">
-        <button type="submit" :disabled="saving" class="bg-primary text-white font-medium py-2 px-6 rounded-md hover:bg-opacity-90 disabled:opacity-50 transition-colors shadow-sm">
-          {{ saving ? 'Guardando...' : (isEditing ? 'Actualizar Noticia' : 'Publicar Noticia') }}
+      <div class="flex flex-col sm:flex-row justify-between items-center mt-6 pt-6 border-t border-gray-200">
+        <label class="flex items-center space-x-2 text-sm font-medium text-gray-700 mb-4 sm:mb-0 cursor-pointer">
+          <input v-model="published" type="checkbox" class="rounded border-gray-300 text-primary focus:ring-primary w-5 h-5 transition-colors" />
+          <span>Publicar (visible para todos)</span>
+        </label>
+
+        <button type="submit" :disabled="saving" class="w-full sm:w-auto bg-primary text-white font-medium py-2 px-8 rounded-md hover:bg-opacity-90 disabled:opacity-50 transition-colors shadow-sm">
+          {{ saving ? 'Guardando...' : (isEditing ? 'Actualizar Noticia' : 'Guardar Noticia') }}
         </button>
       </div>
     </form>
@@ -76,6 +81,7 @@ const headerImageUrl = ref('');
 const localImagePreview = ref('');
 const fileToUpload = ref<File | null>(null);
 const saving = ref(false);
+const published = ref(true);
 
 const editor = useEditor({
   extensions: [
@@ -142,6 +148,7 @@ onMounted(async () => {
     if (post) {
       title.value = post.title;
       headerImageUrl.value = post.headerImageUrl;
+      published.value = post.published !== false;
       if (editor.value) editor.value.commands.setContent(post.content);
     }
   }
@@ -193,6 +200,7 @@ const savePost = async () => {
       title: title.value,
       content: editor.value.getHTML(),
       headerImageUrl: finalImageUrl,
+      published: published.value,
     };
 
     if (isEditing.value && postId.value) {

@@ -35,7 +35,8 @@ const loading = ref(true);
 
 onMounted(async () => {
   try {
-    posts.value = await getPosts();
+    const fetchedPosts = await getPosts();
+    posts.value = fetchedPosts.filter(p => p.published !== false);
   } catch (err) {
     console.error("Error loading posts:", err);
   } finally {
