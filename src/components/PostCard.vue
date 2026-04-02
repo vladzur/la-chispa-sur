@@ -1,7 +1,16 @@
 <template>
   <div class="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
-    <router-link :to="`/post/${post.id}`" class="block h-48 sm:h-64 overflow-hidden relative">
-      <img v-if="post.headerImageUrl" :src="post.headerImageUrl" alt="Header image" class="w-full h-full object-cover transition-transform duration-500 hover:scale-105" />
+    <router-link :to="`/post/${post.id}`" class="block overflow-hidden relative" style="aspect-ratio: 16/9;">
+      <img
+        v-if="post.headerImageUrl"
+        :src="post.headerImageUrl"
+        :alt="post.title"
+        width="600"
+        height="338"
+        loading="lazy"
+        decoding="async"
+        class="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+      />
       <div v-else class="w-full h-full bg-gray-200 flex items-center justify-center">
         <span class="text-gray-400 font-sans tracking-wide uppercase text-sm">Sin imagen</span>
       </div>

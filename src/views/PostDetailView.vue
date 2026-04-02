@@ -32,7 +32,16 @@
     </header>
 
     <figure v-if="post.headerImageUrl" class="mb-10">
-      <img :src="post.headerImageUrl" alt="Cabecera Noticia" class="w-full h-auto max-h-[500px] rounded-md shadow-sm object-cover" />
+      <img
+        :src="post.headerImageUrl"
+        :alt="post.title"
+        width="800"
+        height="450"
+        fetchpriority="high"
+        loading="eager"
+        decoding="async"
+        class="w-full h-auto max-h-[500px] rounded-md shadow-sm object-cover"
+      />
     </figure>
 
     <div class="prose prose-lg md:prose-xl max-w-none text-text-body font-serif leading-relaxed" v-html="post.content"></div>

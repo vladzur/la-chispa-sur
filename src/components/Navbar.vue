@@ -4,7 +4,10 @@
       <div class="flex justify-between h-16 items-center">
         <div class="flex-shrink-0">
           <router-link to="/" class="flex items-center gap-3 text-2xl font-sans font-bold tracking-tight">
-            <img src="/logo.svg" alt="La Chispa Sur Logo" class="h-20 w-auto" />
+            <picture>
+              <source srcset="/logo_80.webp" type="image/webp" />
+              <img src="/logo_80.png" alt="La Chispa Sur Logo" width="80" height="80" class="h-14 w-auto" fetchpriority="high" decoding="async" />
+            </picture>
             <span class="hidden sm:inline">La Chispa Sur</span>
           </router-link>
         </div>
