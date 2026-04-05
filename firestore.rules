@@ -1,39 +1,22 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    // 1. Función para verificar si el usuario logueado es Administrador
+
+    // ── Helpers de rol ──────────────────────────────────────────────────────
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
     function isAdmin() {
-      return request.auth != null && 
-             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+      return request.auth != null && getUserData().role == 'admin';
     }
 
-    // 2. Colección de Noticias (posts)
-    match /posts/{postId} {
-      // Cualquier persona que entre al sitio puede leer las noticias
-      allow read: if true; 
-      
-      // SOLO un admin verificado puede crear o eliminar noticias
-      allow create, delete: if isAdmin();
+    function isEditor() {
+      return request.auth != null && getUserData().role == 'editor';
+    }
 
-      // Update: admin puede modificar todo.
-      // Usuarios anónimos SOLO pueden incrementar kudosCount (ningún otro campo).
-      allow update: if isAdmin() || isKudosOnlyUpdate();
-    }
-    
-    // 3. Colección de Usuarios y Roles (users)
-    match /users/{userId} {
-      // Un usuario solo puede leer su propio documento para saber si es admin o no
-      allow read: if request.auth != null && request.auth.uid == userId;
-      
-      // Nadie puede crear o modificar roles desde la aplicación web directamente.
-      // Así mantenemos la aplicación mucho más segura (solo tú das permisos en la Consola)
-      allow write: if false; 
-    }
-    
-    // 4. Se deniega el acceso a todo lo demás por seguridad
-    match /{document=**} {
-      allow read, write: if false;
+    function isApproved() {
+      return isAdmin() || isEditor();
     }
 
     // Verifica que la escritura solo modifica kudosCount y que el valor sube
@@ -42,6 +25,68 @@ service cloud.firestore {
       let existing = resource.data;
       return incoming.diff(existing).affectedKeys().hasOnly(['kudosCount'])
           && incoming.kudosCount > existing.get('kudosCount', 0);
+    }
+
+    // ── Posts ────────────────────────────────────────────────────────────────
+    match /posts/{postId} {
+      // Cualquier persona puede leer las noticias publicadas
+      allow read: if true;
+
+      // Crear: admin o editor aprobado
+      allow create: if isApproved();
+
+      // Eliminar: solo admin
+      allow delete: if isAdmin();
+
+      // Actualizar: admin puede todo; editor solo sus propios posts (excepto campos protegidos);
+      // anónimos SOLO pueden incrementar kudosCount
+      allow update: if isAdmin()
+                    || (isEditor() && resource.data.authorId == request.auth.uid
+                        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['authorId', 'createdAt']))
+                    || isKudosOnlyUpdate();
+    }
+
+    // ── Usuarios ─────────────────────────────────────────────────────────────
+    match /users/{userId} {
+      // Un usuario autenticado puede leer su propio documento
+      allow read: if request.auth != null && request.auth.uid == userId;
+
+      // Admin puede leer cualquier usuario (para el dashboard de editores)
+      allow read: if isAdmin();
+
+      // Un usuario puede crear su propio documento SOLO con role: 'pending'
+      // (durante el registro desde un enlace de invitación válido)
+      allow create: if request.auth != null
+                    && request.auth.uid == userId
+                    && request.resource.data.role == 'pending'
+                    && request.resource.data.keys().hasAll(['role', 'name', 'email', 'createdAt']);
+
+      // Solo el admin puede modificar roles (aprobación/rechazo via Cloud Function)
+      allow update, delete: if false;
+    }
+
+    // ── Tokens de invitación ─────────────────────────────────────────────────
+    match /inviteTokens/{token} {
+      // Lectura pública: front-end valida si el token existe y es válido
+      allow read: if true;
+
+      // Solo admin puede crear tokens de invitación
+      allow create: if isAdmin();
+
+      // Marcar como usado: solo el usuario autenticado que se está registrando
+      // (actualización parcial: solo puede cambiar el campo 'used' a true y agregar 'usedBy')
+      allow update: if request.auth != null
+                    && resource.data.used == false
+                    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['used', 'usedBy', 'usedAt'])
+                    && request.resource.data.used == true;
+
+      // Nadie puede eliminar tokens desde el cliente
+      allow delete: if false;
+    }
+
+    // ── Denegación por defecto ────────────────────────────────────────────────
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }

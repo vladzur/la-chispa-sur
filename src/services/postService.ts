@@ -1,4 +1,4 @@
-import { collection, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, query, orderBy, serverTimestamp, increment } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, query, orderBy, where, serverTimestamp, increment } from 'firebase/firestore';
 import { db } from '../firebase/config';
 
 export interface Post {
@@ -120,6 +120,16 @@ export const deletePost = async (id: string): Promise<void> => {
   const docRef = doc(db, 'posts', id);
   await deleteDoc(docRef);
   invalidateCache();
+};
+
+/**
+ * Obtiene los posts de un autor específico (para uso del editor en su dashboard).
+ * Siempre consulta Firestore directamente, sin caché.
+ */
+export const getPostsByAuthor = async (authorId: string): Promise<Post[]> => {
+  const q = query(postsCollection, where('authorId', '==', authorId), orderBy('createdAt', 'desc'));
+  const snapshot = await getDocs(q);
+  return snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Post));
 };
 
 export const addKudos = async (postId: string, amount: number): Promise<void> => {

@@ -1,4 +1,4 @@
-import * as functions from 'firebase-functions';
+import * as functions from 'firebase-functions/v1';
 import * as admin from 'firebase-admin';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -6,7 +6,8 @@ import * as path from 'path';
 admin.initializeApp();
 const db = admin.firestore();
 
-// Helper to sanitize html strings
+// ── Helper functions ─────────────────────────────────────────────────────────
+
 const escapeHtml = (unsafe?: string) => {
     if (!unsafe) return '';
     return unsafe
@@ -22,11 +23,11 @@ const extractText = (html?: string) => {
     return html.replace(/<[^>]*>?/gm, '').replace(/&nbsp;/g, ' ').trim();
 };
 
+// ── renderPostTags ────────────────────────────────────────────────────────────
+
 export const renderPostTags = functions.https.onRequest(async (req, res) => {
     try {
-        // req.path will be something like "/post/abc123xyz"
         const pathParts = req.path.split('/');
-        // the index will be [ "", "post", "postId" ]
         const postId = pathParts[2];
 
         if (!postId) {
@@ -38,20 +39,18 @@ export const renderPostTags = functions.https.onRequest(async (req, res) => {
         const docSnap = await docRef.get();
 
         if (!docSnap.exists) {
-            // Serve normal index.html, let Vue handle 404
-            let html = fs.readFileSync(path.resolve(__dirname, './index.html'), 'utf-8');
+            const html = fs.readFileSync(path.resolve(__dirname, './index.html'), 'utf-8');
             res.set('Cache-Control', 'public, max-age=60, s-maxage=300');
             res.status(200).send(html);
             return;
         }
 
         const post = docSnap.data();
-        
-        // Let Vue handle draft protection logic - we just don't inject rich previews for drafts unless we want to.
+
         if (post?.published === false) {
-             let html = fs.readFileSync(path.resolve(__dirname, './index.html'), 'utf-8');
-             res.status(200).send(html);
-             return;
+            const html = fs.readFileSync(path.resolve(__dirname, './index.html'), 'utf-8');
+            res.status(200).send(html);
+            return;
         }
 
         const title = escapeHtml(post?.title || 'Noticia');
@@ -72,22 +71,119 @@ export const renderPostTags = functions.https.onRequest(async (req, res) => {
         `;
 
         let html = fs.readFileSync(path.resolve(__dirname, './index.html'), 'utf-8');
-        
-        // Let's replace the placeholder or <title>
         html = html.replace('<!-- __META_TAGS__ -->', metaTags);
-        html = html.replace('<title>La Chispa Sur</title>', ''); // Clean the default title
+        html = html.replace('<title>La Chispa Sur</title>', '');
 
-        // Cache so we don't bombard Firestore
         res.set('Cache-Control', 'public, max-age=300, s-maxage=3600');
         res.status(200).send(html);
     } catch (error) {
         console.error("Error fetching post data", error);
-        // Fallback to static html
         try {
-            let html = fs.readFileSync(path.resolve(__dirname, './index.html'), 'utf-8');
+            const html = fs.readFileSync(path.resolve(__dirname, './index.html'), 'utf-8');
             res.status(200).send(html);
         } catch {
             res.status(500).send("Server Error");
         }
+    }
+});
+
+// ── approveEditor ─────────────────────────────────────────────────────────────
+
+/**
+ * Cloud Function callable (v1) que permite al admin aprobar o rechazar
+ * solicitudes de registro de editores.
+ *
+ * Recibe: { uid: string, action: 'approve' | 'reject' }
+ */
+export const approveEditor = functions.https.onCall(
+  async (data: { uid: string; action: 'approve' | 'reject' }, context) => {
+    // 1. Verificar autenticación
+    if (!context.auth) {
+        throw new functions.https.HttpsError(
+            'unauthenticated',
+            'Debes estar autenticado para realizar esta acción.'
+        );
+    }
+
+    // 2. Verificar que el llamante es admin
+    const callerDoc = await db.collection('users').doc(context.auth.uid).get();
+    if (!callerDoc.exists || callerDoc.data()?.role !== 'admin') {
+        throw new functions.https.HttpsError(
+            'permission-denied',
+            'Solo los administradores pueden aprobar o rechazar editores.'
+        );
+    }
+
+    const { uid, action } = data;
+
+    if (!uid || !['approve', 'reject'].includes(action)) {
+        throw new functions.https.HttpsError(
+            'invalid-argument',
+            'Datos inválidos. Se requieren uid y action (approve|reject).'
+        );
+    }
+
+    // 3. Verificar que el usuario objetivo existe y está pendiente
+    const targetDoc = await db.collection('users').doc(uid).get();
+    if (!targetDoc.exists) {
+        throw new functions.https.HttpsError('not-found', 'Usuario no encontrado.');
+    }
+    if (targetDoc.data()?.role !== 'pending') {
+        throw new functions.https.HttpsError(
+            'failed-precondition',
+            'Este usuario no está pendiente de aprobación.'
+        );
+    }
+
+    if (action === 'approve') {
+        await db.collection('users').doc(uid).update({
+            role: 'editor',
+            approvedAt: admin.firestore.FieldValue.serverTimestamp(),
+            approvedBy: context.auth.uid,
+        });
+        return { success: true, message: 'Editor aprobado exitosamente.' };
+    } else {
+        await db.collection('users').doc(uid).delete();
+        await admin.auth().deleteUser(uid);
+        return { success: true, message: 'Usuario rechazado y eliminado.' };
+    }
+});
+
+// ── revokeEditor ──────────────────────────────────────────────────────────────
+
+/**
+ * Cloud Function callable (v1) para revocar o eliminar un editor activo.
+ *
+ * Recibe: { uid: string, action: 'revoke' | 'delete' }
+ */
+export const revokeEditor = functions.https.onCall(
+  async (data: { uid: string; action: 'revoke' | 'delete' }, context) => {
+    if (!context.auth) {
+        throw new functions.https.HttpsError('unauthenticated', 'No autenticado.');
+    }
+
+    const callerDoc = await db.collection('users').doc(context.auth.uid).get();
+    if (!callerDoc.exists || callerDoc.data()?.role !== 'admin') {
+        throw new functions.https.HttpsError('permission-denied', 'Solo administradores.');
+    }
+
+    const { uid, action } = data;
+
+    if (!uid || !['revoke', 'delete'].includes(action)) {
+        throw new functions.https.HttpsError('invalid-argument', 'Datos inválidos.');
+    }
+
+    const targetDoc = await db.collection('users').doc(uid).get();
+    if (!targetDoc.exists) {
+        throw new functions.https.HttpsError('not-found', 'Usuario no encontrado.');
+    }
+
+    if (action === 'delete') {
+        await db.collection('users').doc(uid).delete();
+        await admin.auth().deleteUser(uid);
+        return { success: true, message: 'Editor eliminado.' };
+    } else {
+        await db.collection('users').doc(uid).update({ role: 'pending' });
+        return { success: true, message: 'Acceso revocado. Editor movido a pendientes.' };
     }
 });

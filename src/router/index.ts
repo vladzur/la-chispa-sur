@@ -23,43 +23,79 @@ const router = createRouter({
       name: 'login',
       component: () => import('../views/LoginView.vue'),
     },
+    // ── Registro por invitación (ruta secreta, sin menú) ─────────────────────
+    {
+      path: '/registro/:token',
+      name: 'register',
+      component: () => import('../views/RegisterView.vue'),
+      meta: { guestOnly: true }, // Redirige a home si ya está logueado
+    },
+    // ── Pantalla de espera para usuarios pendientes ──────────────────────────
+    {
+      path: '/pendiente',
+      name: 'pending-approval',
+      component: () => import('../views/PendingApprovalView.vue'),
+      meta: { requiresAuth: true },
+    },
+    // ── Panel admin (solo admin) ──────────────────────────────────────────────
     {
       path: '/admin',
       name: 'admin',
       component: () => import('../views/AdminDashboardView.vue'),
-      meta: { requiresAuth: true, requiresAdmin: true }
+      meta: { requiresAuth: true, requiresAdmin: true },
     },
+    // ── Editor de noticias (admin o editor aprobado) ─────────────────────────
     {
       path: '/admin/editor/:id?',
       name: 'editor',
       component: () => import('../views/EditorView.vue'),
-      meta: { requiresAuth: true, requiresAdmin: true }
-    }
+      meta: { requiresAuth: true, requiresApproved: true },
+    },
   ],
 });
 
 router.beforeEach(async (to, _from, next) => {
   const requiresAuth = to.matched.some(record => record.meta.requiresAuth);
-  
-  if (requiresAuth) {
-    const user = await getCurrentUser();
-    if (!user) {
-      next({ name: 'login' });
-    } else {
-      const authStore = useAuthStore();
-      if (to.matched.some(record => record.meta.requiresAdmin)) {
-         if (authStore.isAdmin) {
-           next();
-         } else {
-           next({ name: 'home' })
-         }
-      } else {
-         next();
-      }
+  const guestOnly = to.matched.some(record => record.meta.guestOnly);
+
+  // Esperar a que el usuario esté disponible
+  const user = await getCurrentUser();
+  const authStore = useAuthStore();
+
+  // Si la ruta es solo para invitados (registro) y el usuario está logueado,
+  // redirigir según su rol
+  if (guestOnly && user) {
+    if (authStore.isPending) {
+      return next({ name: 'pending-approval' });
     }
-  } else {
-    next();
+    return next({ name: 'home' });
   }
+
+  if (!requiresAuth) {
+    return next();
+  }
+
+  // Requiere autenticación
+  if (!user) {
+    return next({ name: 'login' });
+  }
+
+  // Usuario pendiente: solo puede ir a /pendiente
+  if (authStore.isPending && to.name !== 'pending-approval') {
+    return next({ name: 'pending-approval' });
+  }
+
+  // Solo admin
+  if (to.matched.some(record => record.meta.requiresAdmin)) {
+    return authStore.isAdmin ? next() : next({ name: 'home' });
+  }
+
+  // Admin o editor aprobado
+  if (to.matched.some(record => record.meta.requiresApproved)) {
+    return authStore.isApproved ? next() : next({ name: 'home' });
+  }
+
+  next();
 });
 
 router.afterEach((to) => {
