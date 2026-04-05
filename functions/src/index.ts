@@ -1,4 +1,4 @@
-import * as functions from 'firebase-functions/v1';
+import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -87,18 +87,16 @@ export const renderPostTags = functions.https.onRequest(async (req, res) => {
     }
 });
 
-// ── approveEditor ─────────────────────────────────────────────────────────────
+// ── approveEditor ────────────────────────────────────────────────────────────────────────────────────
 
 /**
- * Cloud Function callable (v1) que permite al admin aprobar o rechazar
- * solicitudes de registro de editores.
- *
+ * Permite al admin aprobar o rechazar solicitudes de registro de editores.
  * Recibe: { uid: string, action: 'approve' | 'reject' }
  */
 export const approveEditor = functions.https.onCall(
-  async (data: { uid: string; action: 'approve' | 'reject' }, context) => {
+  async (request) => {
     // 1. Verificar autenticación
-    if (!context.auth) {
+    if (!request.auth) {
         throw new functions.https.HttpsError(
             'unauthenticated',
             'Debes estar autenticado para realizar esta acción.'
@@ -106,7 +104,7 @@ export const approveEditor = functions.https.onCall(
     }
 
     // 2. Verificar que el llamante es admin
-    const callerDoc = await db.collection('users').doc(context.auth.uid).get();
+    const callerDoc = await db.collection('users').doc(request.auth.uid).get();
     if (!callerDoc.exists || callerDoc.data()?.role !== 'admin') {
         throw new functions.https.HttpsError(
             'permission-denied',
@@ -114,7 +112,7 @@ export const approveEditor = functions.https.onCall(
         );
     }
 
-    const { uid, action } = data;
+    const { uid, action } = request.data as { uid: string; action: 'approve' | 'reject' };
 
     if (!uid || !['approve', 'reject'].includes(action)) {
         throw new functions.https.HttpsError(
@@ -139,7 +137,7 @@ export const approveEditor = functions.https.onCall(
         await db.collection('users').doc(uid).update({
             role: 'editor',
             approvedAt: admin.firestore.FieldValue.serverTimestamp(),
-            approvedBy: context.auth.uid,
+            approvedBy: request.auth.uid,
         });
         return { success: true, message: 'Editor aprobado exitosamente.' };
     } else {
@@ -149,25 +147,24 @@ export const approveEditor = functions.https.onCall(
     }
 });
 
-// ── revokeEditor ──────────────────────────────────────────────────────────────
+// ── revokeEditor ─────────────────────────────────────────────────────────────────────────────────────
 
 /**
- * Cloud Function callable (v1) para revocar o eliminar un editor activo.
- *
+ * Revoca o elimina un editor activo.
  * Recibe: { uid: string, action: 'revoke' | 'delete' }
  */
 export const revokeEditor = functions.https.onCall(
-  async (data: { uid: string; action: 'revoke' | 'delete' }, context) => {
-    if (!context.auth) {
+  async (request) => {
+    if (!request.auth) {
         throw new functions.https.HttpsError('unauthenticated', 'No autenticado.');
     }
 
-    const callerDoc = await db.collection('users').doc(context.auth.uid).get();
+    const callerDoc = await db.collection('users').doc(request.auth.uid).get();
     if (!callerDoc.exists || callerDoc.data()?.role !== 'admin') {
         throw new functions.https.HttpsError('permission-denied', 'Solo administradores.');
     }
 
-    const { uid, action } = data;
+    const { uid, action } = request.data as { uid: string; action: 'revoke' | 'delete' };
 
     if (!uid || !['revoke', 'delete'].includes(action)) {
         throw new functions.https.HttpsError('invalid-argument', 'Datos inválidos.');
