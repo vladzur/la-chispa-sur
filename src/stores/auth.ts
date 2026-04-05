@@ -4,36 +4,59 @@ import { onAuthStateChanged, type User, signOut as firebaseSignOut } from 'fireb
 import { auth, db } from '../firebase/config';
 import { doc, getDoc } from 'firebase/firestore';
 
+export type UserRole = 'admin' | 'editor' | 'pending' | null;
+
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null);
-  const isAdmin = ref(false);
+  const role = ref<UserRole>(null);
   const userName = ref('');
   const loading = ref(true);
+
+  // Computed helpers (como propiedades derivadas del rol)
+  const isAdmin = ref(false);
+  const isEditor = ref(false);
+  const isPending = ref(false);
+  const isApproved = ref(false); // admin o editor
+
+  const _setRole = (r: UserRole) => {
+    role.value = r;
+    isAdmin.value = r === 'admin';
+    isEditor.value = r === 'editor';
+    isPending.value = r === 'pending';
+    isApproved.value = r === 'admin' || r === 'editor';
+  };
+
+  const _resetRole = () => {
+    role.value = null;
+    isAdmin.value = false;
+    isEditor.value = false;
+    isPending.value = false;
+    isApproved.value = false;
+  };
 
   // Initialize Auth state listener
   const init = () => {
     onAuthStateChanged(auth, async (currentUser) => {
       user.value = currentUser;
-      
+
       if (currentUser) {
         try {
-          // Check if user has admin role in Firestore
           const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
           if (userDoc.exists()) {
             const data = userDoc.data();
-            isAdmin.value = data.role === 'admin';
+            _setRole(data.role as UserRole);
             userName.value = data.name || '';
           } else {
-            isAdmin.value = false;
+            _resetRole();
             userName.value = '';
           }
         } catch (error) {
-          console.error("Error fetching user role:", error);
-          isAdmin.value = false;
+          console.error('Error fetching user role:', error);
+          _resetRole();
           userName.value = '';
         }
       } else {
-        isAdmin.value = false;
+        _resetRole();
         userName.value = '';
       }
       loading.value = false;
@@ -44,5 +67,16 @@ export const useAuthStore = defineStore('auth', () => {
     await firebaseSignOut(auth);
   };
 
-  return { user, isAdmin, userName, loading, init, signOut };
+  return {
+    user,
+    role,
+    isAdmin,
+    isEditor,
+    isPending,
+    isApproved,
+    userName,
+    loading,
+    init,
+    signOut,
+  };
 });
