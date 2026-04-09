@@ -33,9 +33,19 @@
         "headers": [
           { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }
         ]
+      },
+      {
+        "source": "/robots.txt",
+        "headers": [
+          { "key": "Cache-Control", "value": "public, max-age=86400" }
+        ]
       }
     ],
     "rewrites": [
+      {
+        "source": "/sitemap.xml",
+        "function": "generateSitemap"
+      },
       {
         "source": "/post/**",
         "function": "renderPostTags"

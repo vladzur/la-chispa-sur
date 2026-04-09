@@ -55,12 +55,16 @@ export const renderPostTags = functions.https.onRequest(async (req, res) => {
 
         const title = escapeHtml(post?.title || 'Noticia');
         const contentPreview = escapeHtml(extractText(post?.content).substring(0, 160) + '...');
-        const imageUrl = post?.headerImageUrl || '';
+        const imageUrl = post?.headerImageUrl || 'https://lachispasur.cl/logo.webp';
+        const postUrl = `https://lachispasur.cl/post/${postId}`;
 
         const metaTags = `
             <title>${title} | La Chispa Sur</title>
             <meta name="description" content="${contentPreview}" />
+            <link rel="canonical" href="${postUrl}" />
+            <meta property="og:site_name" content="La Chispa Sur" />
             <meta property="og:type" content="article" />
+            <meta property="og:url" content="${postUrl}" />
             <meta property="og:title" content="${title}" />
             <meta property="og:description" content="${contentPreview}" />
             <meta property="og:image" content="${imageUrl}" />
@@ -182,5 +186,54 @@ export const revokeEditor = functions.https.onCall(
     } else {
         await db.collection('users').doc(uid).update({ role: 'pending' });
         return { success: true, message: 'Acceso revocado. Editor movido a pendientes.' };
+    }
+});
+
+// ── generateSitemap ───────────────────────────────────────────────────────────
+
+const SITE_BASE_URL = 'https://lachispasur.cl';
+
+/**
+ * Genera un sitemap.xml dinámico con todos los posts publicados.
+ * Es llamado por Firebase Hosting rewrite en /sitemap.xml.
+ */
+export const generateSitemap = functions.https.onRequest(async (_req, res) => {
+    try {
+        const snapshot = await db
+            .collection('posts')
+            .where('published', '!=', false)
+            .get();
+
+        const postUrls = snapshot.docs.map(docSnap => {
+            const data = docSnap.data();
+            // Obtener fecha de última modificación como string YYYY-MM-DD
+            let lastmod = '';
+            const ts = data.updatedAt ?? data.createdAt;
+            if (ts?.toDate) {
+                lastmod = ts.toDate().toISOString().split('T')[0];
+            }
+            return `
+  <url>
+    <loc>${SITE_BASE_URL}/post/${docSnap.id}</loc>${lastmod ? `\n    <lastmod>${lastmod}</lastmod>` : ''}
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>`;
+        });
+
+        const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>${SITE_BASE_URL}/</loc>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>${postUrls.join('')}
+</urlset>`;
+
+        res.set('Content-Type', 'application/xml; charset=utf-8');
+        res.set('Cache-Control', 'public, max-age=3600, s-maxage=3600');
+        res.status(200).send(xml);
+    } catch (error) {
+        console.error('Error generating sitemap', error);
+        res.status(500).send('Error generating sitemap');
     }
 });
