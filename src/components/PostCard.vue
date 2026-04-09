@@ -7,7 +7,8 @@
         :alt="post.title"
         width="600"
         height="338"
-        loading="lazy"
+        :loading="isLcp ? 'eager' : 'lazy'"
+        :fetchpriority="isLcp ? 'high' : 'auto'"
         decoding="async"
         class="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
       />
@@ -35,7 +36,7 @@
 import { computed } from 'vue';
 import type { Post } from '../services/postService';
 
-const props = defineProps<{ post: Post }>();
+const props = defineProps<{ post: Post; isLcp?: boolean }>();
 
 const formattedDate = computed(() => {
   if (!props.post.createdAt) return '';

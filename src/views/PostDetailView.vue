@@ -39,7 +39,7 @@
         height="450"
         fetchpriority="high"
         loading="eager"
-        decoding="async"
+        decoding="sync"
         class="w-full h-auto max-h-[500px] rounded-md shadow-sm object-cover"
       />
     </figure>
@@ -93,6 +93,15 @@ const toISOString = (dateVal: any): string => {
 
 useHead({
   title: () => post.value?.title || 'Noticia',
+  // Preload LCP hero image — browser fetches it during HTML parsing, before JS runs
+  link: [
+    {
+      rel: 'preload',
+      as: 'image',
+      href: () => post.value?.headerImageUrl ?? '',
+      fetchpriority: 'high'
+    }
+  ],
   meta: [
     { name: 'description', content: () => post.value ? extractText(post.value.content).substring(0, 160) : '' },
     // Open Graph / Facebook / WhatsApp
