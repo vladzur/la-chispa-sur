@@ -81,6 +81,16 @@ const extractText = (html: string) => {
   return html.replace(/<[^>]*>?/gm, '').replace(/&nbsp;/g, ' ').trim();
 };
 
+const SITE_NAME = 'La Chispa Sur';
+const SITE_URL = 'https://lachispasur.cl';
+const SITE_LOGO = `${SITE_URL}/logo.webp`;
+
+const toISOString = (dateVal: any): string => {
+  if (!dateVal) return '';
+  const date = dateVal.toDate ? dateVal.toDate() : new Date(dateVal);
+  return date.toISOString();
+};
+
 useHead({
   title: () => post.value?.title || 'Noticia',
   meta: [
@@ -97,6 +107,53 @@ useHead({
     { name: 'twitter:description', content: () => post.value ? extractText(post.value.content).substring(0, 160) : '' },
     { name: 'twitter:image', content: () => post.value?.headerImageUrl },
     { name: 'twitter:url', content: () => currentUrl.value }
+  ],
+  // JSON-LD Structured Data — NewsArticle schema for Google rich results
+  script: [
+    {
+      type: 'application/ld+json',
+      innerHTML: () => {
+        if (!post.value) return '';
+        const description = extractText(post.value.content).substring(0, 200);
+        const schema: Record<string, any> = {
+          '@context': 'https://schema.org',
+          '@type': 'NewsArticle',
+          headline: post.value.title,
+          description,
+          url: currentUrl.value || `${SITE_URL}/post/${post.value.id}`,
+          datePublished: toISOString(post.value.createdAt),
+          dateModified: toISOString(post.value.updatedAt || post.value.createdAt),
+          author: {
+            '@type': 'Person',
+            name: post.value.authorName || SITE_NAME
+          },
+          publisher: {
+            '@type': 'Organization',
+            name: SITE_NAME,
+            url: SITE_URL,
+            logo: {
+              '@type': 'ImageObject',
+              url: SITE_LOGO,
+              width: 200,
+              height: 60
+            }
+          },
+          mainEntityOfPage: {
+            '@type': 'WebPage',
+            '@id': currentUrl.value || `${SITE_URL}/post/${post.value.id}`
+          }
+        };
+        if (post.value.headerImageUrl) {
+          schema.image = {
+            '@type': 'ImageObject',
+            url: post.value.headerImageUrl,
+            width: 800,
+            height: 450
+          };
+        }
+        return JSON.stringify(schema);
+      }
+    }
   ]
 });
 
