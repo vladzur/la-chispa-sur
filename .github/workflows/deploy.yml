@@ -41,11 +41,7 @@ jobs:
         run: npm run build
         working-directory: ./functions
 
-      - name: Deploy to Firebase Hosting
-        uses: FirebaseExtended/action-hosting-deploy@v0
-        with:
-          repoToken: ${{ secrets.GITHUB_TOKEN }}
-          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_LA_CHISPA_SUR }}
-          projectId: la-chispa-sur
-          channelId: live
-      
+      - name: Deploy to Firebase (Hosting + Functions)
+        run: npx firebase-tools deploy --only hosting,functions:renderPostTags --project la-chispa-sur --non-interactive
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
