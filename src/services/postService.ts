@@ -1,8 +1,9 @@
-import { collection, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, query, orderBy, where, serverTimestamp, increment } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, query, orderBy, where, serverTimestamp, increment, limit } from 'firebase/firestore';
 import { db } from '../firebase/config';
 
 export interface Post {
   id: string;
+  slug?: string;
   title: string;
   content: string; // HTML from rich text editor
   headerImageUrl: string;
@@ -13,6 +14,29 @@ export interface Post {
   published?: boolean;
   kudosCount?: number;
 }
+
+/**
+ * Genera un slug URL-safe a partir de un título en español.
+ * Normaliza acentos, convierte a minúsculas, reemplaza espacios por guiones
+ * y añade un sufijo aleatorio de 4 caracteres para garantizar unicidad.
+ *
+ * Ejemplo: "Incendio en la Región del Biobío" → "incendio-en-la-region-del-biobio-a3f7"
+ */
+export const generateSlug = (title: string): string => {
+  const base = title
+    .normalize('NFD')                   // separa acentos del carácter base
+    .replace(/[\u0300-\u036f]/g, '')    // elimina marcas diacríticas (tildes)
+    .toLowerCase()
+    .replace(/ñ/g, 'n')                 // ñ → n (antes de eliminar especiales)
+    .replace(/[^a-z0-9\s-]/g, '')       // elimina caracteres no alfanuméricos
+    .trim()
+    .replace(/\s+/g, '-')              // espacios → guiones
+    .replace(/-+/g, '-')               // múltiples guiones → uno
+    .substring(0, 60);                 // máximo 60 caracteres
+
+  const suffix = Math.random().toString(36).substring(2, 6); // 4 chars aleatorios
+  return `${base}-${suffix}`;
+};
 
 const CACHE_TTL = 30 * 60 * 1000; // 30 minutes
 const SESSION_CACHE_KEY = 'lachispasur_posts_cache';
@@ -79,27 +103,63 @@ export const getPosts = async (forceRefresh = false): Promise<Post[]> => {
   return posts;
 };
 
-export const getPost = async (id: string, forceRefresh = false): Promise<Post | null> => {
+/**
+ * Búsqueda de post por slug (campo en Firestore).
+ * Primero revisa el caché en memoria, luego hace query a Firestore.
+ */
+export const getPostBySlug = async (slug: string): Promise<Post | null> => {
+  // Revisar caché primero
+  const cache = loadCache();
+  if (cache) {
+    const found = cache.posts.find(p => p.slug === slug);
+    if (found) return found;
+  }
+  // Query a Firestore por el campo slug
+  const q = query(postsCollection, where('slug', '==', slug), limit(1));
+  const snapshot = await getDocs(q);
+  if (!snapshot.empty) {
+    const d = snapshot.docs[0];
+    return { id: d.id, ...d.data() } as Post;
+  }
+  return null;
+};
+
+/**
+ * Obtiene un post por slug o por ID de Firestore (búsqueda dual).
+ * Primero intenta encontrar el post como slug; si no lo encuentra,
+ * lo busca directamente como ID de documento (retrocompatibilidad con URLs antiguas).
+ */
+export const getPost = async (slugOrId: string, forceRefresh = false): Promise<Post | null> => {
   if (!forceRefresh) {
     const cache = loadCache();
     if (cache) {
-      const found = cache.posts.find(p => p.id === id);
+      // Buscar por slug o por ID en caché
+      const found = cache.posts.find(p => p.slug === slugOrId || p.id === slugOrId);
       if (found) return found;
     }
   }
-  const docRef = doc(db, 'posts', id);
+
+  // 1. Intentar búsqueda por slug en Firestore
+  const bySlug = await getPostBySlug(slugOrId);
+  if (bySlug) return bySlug;
+
+  // 2. Fallback: buscar directamente por ID de documento (URLs antiguas)
+  const docRef = doc(db, 'posts', slugOrId);
   const docSnap = await getDoc(docRef);
-  
   if (docSnap.exists()) {
     return { id: docSnap.id, ...docSnap.data() } as Post;
   }
+
   return null;
 };
 
 export const createPost = async (post: Omit<Post, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> => {
   const newPostRef = doc(postsCollection); // auto-generate ID
+  // Generar slug automático desde el título si no se provee uno
+  const slug = post.slug || generateSlug(post.title);
   await setDoc(newPostRef, {
     ...post,
+    slug,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp()
   });

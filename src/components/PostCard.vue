@@ -1,6 +1,6 @@
 <template>
   <div class="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
-    <router-link :to="`/post/${post.id}`" class="block overflow-hidden relative" style="aspect-ratio: 16/9;">
+    <router-link :to="`/post/${post.slug || post.id}`" class="block overflow-hidden relative" style="aspect-ratio: 16/9;">
       <img
         v-if="post.headerImageUrl"
         :src="post.headerImageUrl"
@@ -18,7 +18,7 @@
     </router-link>
     <div class="p-6">
       <h2 class="text-2xl font-bold font-sans text-text-heading mb-2 leading-tight">
-        <router-link :to="`/post/${post.id}`" class="hover:text-primary transition-colors">
+        <router-link :to="`/post/${post.slug || post.id}`" class="hover:text-primary transition-colors">
           {{ post.title }}
         </router-link>
       </h2>

@@ -129,7 +129,7 @@ useHead({
           '@type': 'NewsArticle',
           headline: post.value.title,
           description,
-          url: currentUrl.value || `${SITE_URL}/post/${post.value.id}`,
+          url: currentUrl.value || `${SITE_URL}/post/${post.value.slug || post.value.id}`,
           datePublished: toISOString(post.value.createdAt),
           dateModified: toISOString(post.value.updatedAt || post.value.createdAt),
           author: {
@@ -149,7 +149,7 @@ useHead({
           },
           mainEntityOfPage: {
             '@type': 'WebPage',
-            '@id': currentUrl.value || `${SITE_URL}/post/${post.value.id}`
+            '@id': currentUrl.value || `${SITE_URL}/post/${post.value.slug || post.value.id}`
           }
         };
         if (post.value.headerImageUrl) {
@@ -167,9 +167,9 @@ useHead({
 });
 
 const loadPost = async () => {
-  const id = route.params.id as string;
+  const slugOrId = route.params.slug as string;
   try {
-    const fetchedPost = await getPost(id);
+    const fetchedPost = await getPost(slugOrId);
     // Verificar visibilidad
     if (fetchedPost && fetchedPost.published === false && !authStore.isAdmin) {
       post.value = null;
