@@ -24,9 +24,16 @@ import { useHead } from '@vueuse/head';
 useHead({
   title: 'Inicio',
   meta: [
-    { property: 'og:title', content: 'La Chispa Sur | Inicio' },
     { name: 'description', content: 'Diario independiente con las últimas noticias de la región sur.' },
-    { property: 'og:description', content: 'Diario independiente con las últimas noticias de la región sur.' }
+    { property: 'og:type', content: 'website' },
+    { property: 'og:url', content: 'https://lachispasur.cl/' },
+    { property: 'og:title', content: 'La Chispa Sur | Inicio' },
+    { property: 'og:description', content: 'Diario independiente con las últimas noticias de la región sur.' },
+    { property: 'og:image', content: 'https://lachispasur.cl/logo.webp' },
+    { name: 'twitter:card', content: 'summary_large_image' },
+    { name: 'twitter:title', content: 'La Chispa Sur | Inicio' },
+    { name: 'twitter:description', content: 'Diario independiente con las últimas noticias de la región sur.' },
+    { name: 'twitter:image', content: 'https://lachispasur.cl/logo.webp' },
   ]
 });
 
