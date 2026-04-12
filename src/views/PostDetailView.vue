@@ -243,6 +243,10 @@ const formatDate = (dateVal: any) => {
 
 <style scoped>
 /* Scoped styles to ensure rich text images fit nicely */
+:deep(.prose p) {
+  margin-bottom: 1.5em;
+  line-height: 1.85;
+}
 :deep(.prose img) {
   width: 100%;
   border-radius: 0.5rem;
