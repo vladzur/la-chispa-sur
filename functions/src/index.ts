@@ -28,15 +28,26 @@ const extractText = (html?: string) => {
 export const renderPostTags = functions.https.onRequest(async (req, res) => {
     try {
         const pathParts = req.path.split('/');
-        const postId = pathParts[2];
+        const slugOrId = pathParts[2];
 
-        if (!postId) {
+        if (!slugOrId) {
             res.status(404).send("Not found");
             return;
         }
 
-        const docRef = db.collection('posts').doc(postId);
-        const docSnap = await docRef.get();
+        // 1. Intentar búsqueda directa por ID de documento (rutas antiguas)
+        let docSnap = await db.collection('posts').doc(slugOrId).get();
+
+        // 2. Si no existe como ID, buscar por campo slug (rutas nuevas)
+        if (!docSnap.exists) {
+            const slugQuery = await db.collection('posts')
+                .where('slug', '==', slugOrId)
+                .limit(1)
+                .get();
+            if (!slugQuery.empty) {
+                docSnap = slugQuery.docs[0] as any;
+            }
+        }
 
         if (!docSnap.exists) {
             const html = fs.readFileSync(path.resolve(__dirname, './index.html'), 'utf-8');
@@ -56,7 +67,9 @@ export const renderPostTags = functions.https.onRequest(async (req, res) => {
         const title = escapeHtml(post?.title || 'Noticia');
         const contentPreview = escapeHtml(extractText(post?.content).substring(0, 160) + '...');
         const imageUrl = post?.headerImageUrl || 'https://lachispasur.cl/logo.webp';
-        const postUrl = `https://lachispasur.cl/post/${postId}`;
+        // Usar slug en la URL canónica si existe, si no usar el ID del documento
+        const canonicalSlug = post?.slug || docSnap.id;
+        const postUrl = `https://lachispasur.cl/post/${canonicalSlug}`;
 
         const metaTags = `
             <title>${title} | La Chispa Sur</title>
@@ -212,9 +225,11 @@ export const generateSitemap = functions.https.onRequest(async (_req, res) => {
             if (ts?.toDate) {
                 lastmod = ts.toDate().toISOString().split('T')[0];
             }
+            // Usar slug en la URL si exist, si no usar el ID de Firestore
+            const urlSegment = data.slug || docSnap.id;
             return `
   <url>
-    <loc>${SITE_BASE_URL}/post/${docSnap.id}</loc>${lastmod ? `\n    <lastmod>${lastmod}</lastmod>` : ''}
+    <loc>${SITE_BASE_URL}/post/${urlSegment}</loc>${lastmod ? `\n    <lastmod>${lastmod}</lastmod>` : ''}
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>`;

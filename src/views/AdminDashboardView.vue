@@ -46,7 +46,7 @@
               <span class="list-item__meta">{{ formatDate(post.createdAt) }}</span>
             </div>
             <div class="list-item__actions">
-              <router-link :to="`/post/${post.id}`" target="_blank" class="action-link action-link--view">Ver</router-link>
+              <router-link :to="`/post/${post.slug || post.id}`" target="_blank" class="action-link action-link--view">Ver</router-link>
               <router-link :to="`/admin/editor/${post.id}`" class="action-link action-link--edit">Editar</router-link>
               <button @click="handleDelete(post.id)" class="action-link action-link--delete">Borrar</button>
             </div>
