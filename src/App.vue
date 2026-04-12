@@ -39,9 +39,6 @@ useHead({
   titleTemplate: (title) => title ? `${title} | La Chispa Sur` : 'La Chispa Sur',
   meta: [
     { name: 'description', content: 'Diario independiente con las últimas noticias de la región sur.' },
-    { property: 'og:site_name', content: 'La Chispa Sur' },
-    { property: 'og:type', content: 'website' },
-    { name: 'twitter:card', content: 'summary_large_image' },
   ]
 });
 
