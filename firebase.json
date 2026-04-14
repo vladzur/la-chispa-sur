@@ -47,6 +47,10 @@
         "function": "generateSitemap"
       },
       {
+        "source": "/rss.xml",
+        "function": "generateRss"
+      },
+      {
         "source": "/post/**",
         "function": "renderPostTags"
       },
