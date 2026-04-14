@@ -91,7 +91,7 @@ export const renderPostTags = functions.https.onRequest(async (req, res) => {
         html = html.replace('<!-- __META_TAGS__ -->', metaTags);
         html = html.replace('<title>La Chispa Sur</title>', '');
 
-        res.set('Cache-Control', 'public, max-age=300, s-maxage=3600');
+        res.set('Cache-Control', 'public, max-age=60, s-maxage=0');
         res.status(200).send(html);
     } catch (error) {
         console.error("Error fetching post data", error);
@@ -250,5 +250,68 @@ export const generateSitemap = functions.https.onRequest(async (_req, res) => {
     } catch (error) {
         console.error('Error generating sitemap', error);
         res.status(500).send('Error generating sitemap');
+    }
+});
+
+// ── generateRss ───────────────────────────────────────────────────────────────
+
+export const generateRss = functions.https.onRequest(async (_req, res) => {
+    try {
+        const snapshot = await db
+            .collection('posts')
+            .where('published', '!=', false)
+            .get();
+
+        const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+        // Ordenar en memoria por fecha descendente
+        docs.sort((a: any, b: any) => {
+            const dateA = a.createdAt?.toDate?.() || new Date(0);
+            const dateB = b.createdAt?.toDate?.() || new Date(0);
+            return dateB.getTime() - dateA.getTime();
+        });
+
+        // Tomamos los últimos 50 posts para el feed
+        const latestDocs = docs.slice(0, 50);
+
+        const items = latestDocs.map((data: any) => {
+            const urlSegment = data.slug || data.id;
+            const postUrl = `${SITE_BASE_URL}/post/${urlSegment}`;
+            const title = escapeHtml(data.title || 'Noticia');
+            const description = escapeHtml(extractText(data.content).substring(0, 300) + '...');
+            
+            let pubDate = '';
+            const ts = data.createdAt || data.updatedAt;
+            if (ts?.toDate) {
+                pubDate = ts.toDate().toUTCString();
+            }
+
+            return `
+    <item>
+      <title>${title}</title>
+      <link>${postUrl}</link>
+      <guid>${postUrl}</guid>
+      <description>${description}</description>
+      ${pubDate ? `<pubDate>${pubDate}</pubDate>` : ''}
+    </item>`;
+        });
+
+        const xml = `<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>La Chispa Sur</title>
+    <link>${SITE_BASE_URL}</link>
+    <description>Noticias e ideas desde el sur</description>
+    <atom:link href="${SITE_BASE_URL}/rss.xml" rel="self" type="application/rss+xml" />
+    <language>es</language>${items.join('')}
+  </channel>
+</rss>`;
+
+        res.set('Content-Type', 'application/rss+xml; charset=utf-8');
+        res.set('Cache-Control', 'public, max-age=3600, s-maxage=3600');
+        res.status(200).send(xml);
+    } catch (error) {
+        console.error('Error generating RSS', error);
+        res.status(500).send('Error generating RSS');
     }
 });
