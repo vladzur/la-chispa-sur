@@ -88,7 +88,8 @@ export const renderPostTags = functions.https.onRequest(async (req, res) => {
         `;
 
         let html = fs.readFileSync(path.resolve(__dirname, './index.html'), 'utf-8');
-        html = html.replace('<!-- __META_TAGS__ -->', metaTags);
+        // Reemplazar todo el bloque genérico de SEO por los meta tags del post
+        html = html.replace(/<!-- __DEFAULT_SEO_START__ -->[\s\S]*<!-- __DEFAULT_SEO_END__ -->/, metaTags);
         html = html.replace('<title>La Chispa Sur</title>', '');
 
         res.set('Cache-Control', 'public, max-age=60, s-maxage=0');
