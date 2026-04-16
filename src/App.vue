@@ -37,9 +37,6 @@ const authStore = useAuthStore();
 
 useHead({
   titleTemplate: (title) => title ? `${title} | La Chispa Sur` : 'La Chispa Sur',
-  meta: [
-    { name: 'description', content: 'Diario independiente con las últimas noticias de la región sur.' },
-  ]
 });
 
 onMounted(() => {

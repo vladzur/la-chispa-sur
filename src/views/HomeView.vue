@@ -24,15 +24,15 @@ import { useHead } from '@vueuse/head';
 useHead({
   title: 'Inicio',
   meta: [
-    { name: 'description', content: 'Diario independiente con las últimas noticias de la región sur.' },
+    { name: 'description', content: 'Periodismo digital independiente y crítico desde La Araucanía. Abordamos la realidad nacional con perspectiva de izquierda, análisis y voz territorial.' },
     { property: 'og:type', content: 'website' },
     { property: 'og:url', content: 'https://lachispasur.cl/' },
     { property: 'og:title', content: 'La Chispa Sur | Inicio' },
-    { property: 'og:description', content: 'Diario independiente con las últimas noticias de la región sur.' },
+    { property: 'og:description', content: 'Periodismo digital independiente y crítico desde La Araucanía. Abordamos la realidad nacional con perspectiva de izquierda, análisis y voz territorial.' },
     { property: 'og:image', content: 'https://lachispasur.cl/logo.webp' },
     { name: 'twitter:card', content: 'summary_large_image' },
     { name: 'twitter:title', content: 'La Chispa Sur | Inicio' },
-    { name: 'twitter:description', content: 'Diario independiente con las últimas noticias de la región sur.' },
+    { name: 'twitter:description', content: 'Periodismo digital independiente y crítico desde La Araucanía. Abordamos la realidad nacional con perspectiva de izquierda, análisis y voz territorial.' },
     { name: 'twitter:image', content: 'https://lachispasur.cl/logo.webp' },
   ]
 });
