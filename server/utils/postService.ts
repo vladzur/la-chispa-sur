@@ -96,3 +96,15 @@ export const getPostsByAuthor = async (authorId: string): Promise<Post[]> => {
     .get()
   return snapshot.docs.map(toPost)
 }
+
+/**
+ * Todos los posts incluyendo borradores — para uso exclusivo del dashboard admin.
+ */
+export const getAllPosts = async (): Promise<Post[]> => {
+  const db = getAdminDb()
+  const snapshot = await db
+    .collection('posts')
+    .orderBy('createdAt', 'desc')
+    .get()
+  return snapshot.docs.map(toPost)
+}
