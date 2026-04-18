@@ -155,7 +155,7 @@ const handleRegister = async () => {
   error.value = ''
 
   try {
-    const { $firebaseAuth } = useNuxtApp()
+    const { $firebaseAuth } = useNuxtApp() as any
     
     // 1. Crear usuario en Firebase Auth (cliente)
     const userCredential = await createUserWithEmailAndPassword($firebaseAuth, email.value, password.value)

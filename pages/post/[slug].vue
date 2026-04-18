@@ -95,7 +95,7 @@ const slug = route.params.slug as string
 // Todo ocurre en el servidor. El HTML que llega al crawler ya contiene el artículo.
 const { data: post } = await useAsyncData<Post | null>(
   `post-${slug}`,
-  () => $fetch(`/api/posts/${slug}`).catch(() => null)
+  () => $fetch<Post>(`/api/posts/${slug}`).catch(() => null)
 )
 
 // 404 automático si el artículo no existe

@@ -27,7 +27,7 @@ export const useAuthStore = defineStore('auth', () => {
    * Solo llamar desde el cliente (ej. en layout default.vue onMounted).
    */
   const init = () => {
-    const { $firebaseAuth, $firebaseDb } = useNuxtApp()
+    const { $firebaseAuth, $firebaseDb } = useNuxtApp() as any
 
     onAuthStateChanged($firebaseAuth, async (currentUser) => {
       user.value = currentUser
@@ -58,7 +58,7 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   const signOut = async () => {
-    const { $firebaseAuth } = useNuxtApp()
+    const { $firebaseAuth } = useNuxtApp() as any
     await firebaseSignOut($firebaseAuth)
   }
 

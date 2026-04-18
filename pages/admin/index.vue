@@ -194,7 +194,7 @@ const formatDate = (iso: string | null | undefined) => {
 
 const handleDelete = async (id: string) => {
   if (!confirm('¿Estás seguro de que quieres borrar esta noticia?')) return
-  await $fetch(`/api/posts/${id}`, { method: 'DELETE' })
+  await ($fetch as any)(`/api/posts/${id}`, { method: 'DELETE' })
   await loadPosts()
 }
 

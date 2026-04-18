@@ -46,7 +46,7 @@ useSeoMeta({
 // El HTML que llega al browser ya contiene el grid de noticias completo.
 const { data: posts } = await useAsyncData<Post[]>(
   'posts-home',
-  () => $fetch('/api/posts'),
+  () => $fetch<Post[]>('/api/posts'),
   {
     default: () => [] as Post[],
   }

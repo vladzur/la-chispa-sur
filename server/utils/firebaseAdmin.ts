@@ -3,6 +3,7 @@
 import { initializeApp, getApps, cert, type App } from 'firebase-admin/app'
 import { getFirestore, type Firestore } from 'firebase-admin/firestore'
 import { getAuth, type Auth } from 'firebase-admin/auth'
+import { getStorage, type Storage } from 'firebase-admin/storage'
 
 let _app: App | null = null
 let _db: Firestore | null = null
@@ -37,4 +38,11 @@ export const getAdminDb = (): Firestore => {
 export const getAdminAuth = (): Auth => {
   if (!_auth) _auth = getAuth(getAdminApp())
   return _auth
+}
+
+let _storage: Storage | null = null
+
+export const getAdminStorage = (): Storage => {
+  if (!_storage) _storage = getStorage(getAdminApp())
+  return _storage
 }

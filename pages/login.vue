@@ -73,7 +73,7 @@ const handleLogin = async () => {
   error.value = ''
 
   try {
-    const { $firebaseAuth } = useNuxtApp()
+    const { $firebaseAuth } = useNuxtApp() as any
     await signInWithEmailAndPassword($firebaseAuth, email.value, password.value)
     router.push('/admin')
   } catch (err: any) {

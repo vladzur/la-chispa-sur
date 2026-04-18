@@ -40,6 +40,7 @@ export default defineNuxtConfig({
   // Tailwind CSS v4 — igual que en el vite.config.ts del proyecto Vue original
   vite: {
     plugins: [
+      // @ts-expect-error Vite version mismatch between rolldown and rollup types
       tailwindcss(),
     ],
   },

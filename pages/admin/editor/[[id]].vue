@@ -209,7 +209,7 @@ const savePost = async () => {
     }
 
     if (isEditing.value && postId.value) {
-      await $fetch(`/api/posts/${postId.value}`, { method: 'PATCH', body: postData })
+      await ($fetch as any)(`/api/posts/${postId.value}`, { method: 'PATCH', body: postData })
     } else {
       await $fetch('/api/posts', {
         method: 'POST',
