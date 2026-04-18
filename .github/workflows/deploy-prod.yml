@@ -1,0 +1,52 @@
+name: Deploy Production
+
+on:
+  push:
+    tags:
+      - 'v*' # Despliega a producción al crear un tag (e.g. v1.0.0)
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    # Permisos necesarios para interactuar con la API de Google Cloud de forma segura
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 1. Autenticación con Google Cloud (usa Service Account JSON o Workload Identity)
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: '${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_JSON }}'
+          # Alternativa más segura: 
+          # workload_identity_provider: 'projects/123456789/locations/global/workloadIdentityPools/my-pool/providers/my-provider'
+          # service_account: 'my-service-account@my-project.iam.gserviceaccount.com'
+
+      # 2. Despliegue en Cloud Run
+      # Esta action tomará el Dockerfile raíz, lo compilará automáticamente en Cloud Build
+      # y luego desplegará la imagen resultante en Cloud Run.
+      - name: Deploy to Cloud Run
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: la-chispa-sur-prod
+          region: us-central1
+          source: ./ # Usa el Dockerfile en la raíz
+          env_vars: |-
+            NUXT_PUBLIC_FIREBASE_API_KEY=${{ secrets.PROD_FIREBASE_API_KEY }}
+            NUXT_PUBLIC_FIREBASE_AUTH_DOMAIN=${{ secrets.PROD_FIREBASE_AUTH_DOMAIN }}
+            NUXT_PUBLIC_FIREBASE_PROJECT_ID=${{ secrets.PROD_FIREBASE_PROJECT_ID }}
+            NUXT_PUBLIC_FIREBASE_STORAGE_BUCKET=${{ secrets.PROD_FIREBASE_STORAGE_BUCKET }}
+            NUXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=${{ secrets.PROD_FIREBASE_MESSAGING_SENDER_ID }}
+            NUXT_PUBLIC_FIREBASE_APP_ID=${{ secrets.PROD_FIREBASE_APP_ID }}
+            NUXT_PUBLIC_FIREBASE_MEASUREMENT_ID=${{ secrets.PROD_FIREBASE_MEASUREMENT_ID }}
+            FIREBASE_PROJECT_ID=${{ secrets.PROD_FIREBASE_PROJECT_ID }}
+          # Mapeo de secretos sensibles inyectados desde Google Cloud Secret Manager
+          # Sintaxis: ENV_VAR_NAME=SECRET_NAME:VERSION
+          secrets: |-
+            FIREBASE_CLIENT_EMAIL=FIREBASE_CLIENT_EMAIL_PROD:latest
+            FIREBASE_PRIVATE_KEY=FIREBASE_PRIVATE_KEY_PROD:latest
