@@ -1,30 +1,23 @@
-# Logs
-logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
+# ─── Nuxt / Vite build outputs ───────────────────────────────────────────────
+.output/
+.nuxt/
+dist/
+node_modules/
 
-node_modules
-functions/node_modules
-dist
-functions/lib
-dist-ssr
-*.local
+# ─── Variables de entorno — NUNCA versionar ──────────────────────────────────
 .env
 .env.*
 !.env.example
 
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
+# ─── Logs ────────────────────────────────────────────────────────────────────
+*.log
+npm-debug.log*
+
+# ─── OS / Editor ─────────────────────────────────────────────────────────────
 .DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
-coverage/
+.vscode/settings.json
+*.local
+
+# ─── Cache ───────────────────────────────────────────────────────────────────
+.cache/
+*.tsbuildinfo

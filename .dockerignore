@@ -1,0 +1,12 @@
+node_modules
+.git
+.firebase
+.github
+functions
+src
+dist
+coverage
+*.md
+.env
+.env.*
+!.env.example
