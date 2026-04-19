@@ -11,7 +11,7 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 
 # npm ci es más rápido y determinístico que npm install
-RUN npm ci --frozen-lockfile
+RUN npm install
 
 # ── Stage 2: Build ────────────────────────────────────────────────────────────
 FROM node:20-alpine AS builder
