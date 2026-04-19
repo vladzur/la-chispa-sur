@@ -4,7 +4,7 @@
 # ─────────────────────────────────────────────────────────────────────────────
 
 # ── Stage 1: Dependencias ─────────────────────────────────────────────────────
-FROM node:20-alpine AS deps
+FROM node:20-slim AS deps
 WORKDIR /app
 
 # Copiar solo los archivos de dependencias para aprovechar el cache de Docker
@@ -14,7 +14,7 @@ COPY package.json package-lock.json ./
 RUN npm install
 
 # ── Stage 2: Build ────────────────────────────────────────────────────────────
-FROM node:20-alpine AS builder
+FROM node:20-slim AS builder
 WORKDIR /app
 
 COPY --from=deps /app/node_modules ./node_modules
@@ -37,12 +37,12 @@ ENV FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nmock\n-----END PRIVATE KE
 RUN npm run build
 
 # ── Stage 3: Runner (imagen mínima de producción) ─────────────────────────────
-FROM node:20-alpine AS runner
+FROM node:20-slim AS runner
 WORKDIR /app
 
-# Usuario no-root por seguridad en Cloud Run
-RUN addgroup --system --gid 1001 nuxt \
- && adduser  --system --uid 1001 nuxt
+# Usuario no-root por seguridad en Cloud Run (Sintaxis de Debian/slim)
+RUN groupadd --system --gid 1001 nuxt \
+ && useradd --system --uid 1001 --gid 1001 nuxt
 
 # Copiar solo .output/ — contiene el servidor Nitro compilado + assets del cliente
 # NO se necesitan node_modules: Nitro bundlea todo
