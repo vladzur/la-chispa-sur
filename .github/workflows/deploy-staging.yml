@@ -29,6 +29,7 @@ jobs:
           service: la-chispa-sur-staging
           region: us-central1
           source: ./ 
+          flags: '--allow-unauthenticated'
           # Asegúrate de configurar los secretos correspondientes a Staging en GitHub
           env_vars: |-
             NUXT_PUBLIC_FIREBASE_API_KEY=${{ secrets.STAGING_FIREBASE_API_KEY }}
