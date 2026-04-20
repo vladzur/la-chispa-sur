@@ -25,6 +25,7 @@ const getAdminApp = (): App => {
       // Las nuevlines escapadas de los env vars se deben restaurar
       privateKey: config.firebasePrivateKey.replace(/\\n/g, '\n'),
     }),
+    storageBucket: config.public.firebaseStorageBucket,
   })
 
   return _app
