@@ -46,6 +46,47 @@ const authStore = useAuthStore()
 
 // Inicialización movida al plugin de firebase.client.ts para evitar deadlocks en el router
 
+const route = useRoute()
+const router = useRouter()
+
+// Lógica de protección de rutas en el cliente (reemplaza al middleware defectuoso en SSR)
+if (import.meta.client) {
+  watchEffect(() => {
+    if (authStore.loading) return
+
+    const requiresAuth = route.meta.requiresAuth as boolean | undefined
+    const requiresAdmin = route.meta.requiresAdmin as boolean | undefined
+    const requiresApproved = route.meta.requiresApproved as boolean | undefined
+    const guestOnly = route.meta.guestOnly as boolean | undefined
+
+    if (guestOnly && authStore.user) {
+      router.push(authStore.isPending ? '/pendiente' : '/')
+      return
+    }
+
+    if (!requiresAuth) return
+
+    if (!authStore.user) {
+      router.push('/login')
+      return
+    }
+
+    if (authStore.isPending && route.path !== '/pendiente') {
+      router.push('/pendiente')
+      return
+    }
+
+    if (requiresAdmin && !authStore.isAdmin) {
+      router.push('/')
+      return
+    }
+
+    if (requiresApproved && !authStore.isApproved) {
+      router.push('/')
+      return
+    }
+  })
+}
 // Title template global
 useHead({
   titleTemplate: (title) => title ? `${title} | La Chispa Sur` : 'La Chispa Sur',
