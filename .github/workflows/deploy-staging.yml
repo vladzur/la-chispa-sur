@@ -1,10 +1,7 @@
 name: Deploy Staging
 
 on:
-  push:
-    branches:
-      - staging
-      - develop # Se ejecuta cuando hay push o merge a las ramas staging/develop
+  workflow_dispatch: # Permite disparar el workflow manualmente desde la interfaz de GitHub seleccionando cualquier rama
 
 jobs:
   deploy:
