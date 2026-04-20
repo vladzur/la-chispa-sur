@@ -27,7 +27,35 @@ jobs:
           # workload_identity_provider: 'projects/123456789/locations/global/workloadIdentityPools/my-pool/providers/my-provider'
           # service_account: 'my-service-account@my-project.iam.gserviceaccount.com'
 
-      # 2. Despliegue en Cloud Run
+      # 2. Build Nuxt App
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build Nuxt app
+        run: npm run build
+        env:
+          NUXT_PUBLIC_FIREBASE_API_KEY: ${{ secrets.PROD_FIREBASE_API_KEY }}
+          NUXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${{ secrets.PROD_FIREBASE_AUTH_DOMAIN }}
+          NUXT_PUBLIC_FIREBASE_PROJECT_ID: ${{ secrets.PROD_FIREBASE_PROJECT_ID }}
+          NUXT_PUBLIC_FIREBASE_STORAGE_BUCKET: ${{ secrets.PROD_FIREBASE_STORAGE_BUCKET }}
+          NUXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.PROD_FIREBASE_MESSAGING_SENDER_ID }}
+          NUXT_PUBLIC_FIREBASE_APP_ID: ${{ secrets.PROD_FIREBASE_APP_ID }}
+          NUXT_PUBLIC_FIREBASE_MEASUREMENT_ID: ${{ secrets.PROD_FIREBASE_MEASUREMENT_ID }}
+          FIREBASE_PROJECT_ID: ${{ secrets.PROD_FIREBASE_PROJECT_ID }}
+
+      # 3. Despliegue en Firebase Hosting
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools
+
+      - name: Deploy to Firebase Hosting
+        run: firebase deploy --only hosting --project ${{ secrets.PROD_FIREBASE_PROJECT_ID }}
+
+      # 4. Despliegue en Cloud Run
       # Esta action tomará el Dockerfile raíz, lo compilará automáticamente en Cloud Build
       # y luego desplegará la imagen resultante en Cloud Run.
       - name: Deploy to Cloud Run
