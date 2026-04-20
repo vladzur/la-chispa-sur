@@ -146,15 +146,18 @@ useSeoMeta({
 
 // Canonical + preload LCP image + JSON-LD
 useHead({
-  link: [
-    { rel: 'canonical', href: () => postUrl.value },
-    {
-      rel: 'preload',
-      as: 'image',
-      href: () => post.value?.headerImageUrl ?? '',
-      fetchpriority: 'high',
-    },
-  ],
+  link: () => {
+    const links: any[] = [{ rel: 'canonical', href: postUrl.value }]
+    if (post.value?.headerImageUrl) {
+      links.push({
+        rel: 'preload',
+        as: 'image',
+        href: post.value.headerImageUrl,
+        fetchpriority: 'high',
+      })
+    }
+    return links
+  },
   script: [
     {
       type: 'application/ld+json',

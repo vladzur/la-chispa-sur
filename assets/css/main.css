@@ -4,8 +4,7 @@
    Tailwind v4 usa @import "tailwindcss" + @theme en lugar de tailwind.config.js
 ───────────────────────────────────────────────────────────────────────────── */
 
-/* Google Fonts — cargadas aquí para que Tailwind las incluya en el bundle CSS */
-@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&family=Merriweather:ital,wght@0,400;0,700;1,400&display=swap');
+/* Google Fonts — se cargan en nuxt.config.ts para no bloquear el renderizado */
 
 @import "tailwindcss";
 

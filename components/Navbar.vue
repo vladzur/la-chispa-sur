@@ -6,12 +6,14 @@
         <div class="flex-shrink-0">
           <NuxtLink to="/" class="flex items-center gap-3 text-2xl font-sans font-bold tracking-tight">
             <img
-              src="https://lachispasur.cl/logo_80.webp"
+              src="/logo_80.webp"
               alt="La Chispa Sur Logo"
               width="80"
               height="80"
               class="h-14 w-auto"
               loading="eager"
+              fetchpriority="high"
+              decoding="sync"
             />
             <span class="hidden sm:inline">La Chispa Sur</span>
           </NuxtLink>
