@@ -1,7 +1,7 @@
 // middleware/auth.ts
 // Route guard global — equivalente al router.beforeEach de Vue Router
 // Se ejecuta en cliente DESPUÉS de la hidratación
-export default defineNuxtRouteMiddleware((to) => {
+export default defineNuxtRouteMiddleware(async (to) => {
   // Solo ejecutar en cliente (auth state no disponible en SSR)
   if (import.meta.server) return
 
