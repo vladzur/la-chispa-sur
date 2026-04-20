@@ -34,16 +34,14 @@ export default defineNuxtPlugin(() => {
     if (supported) analytics = getAnalytics(app)
   })
 
+  // Inyectar manualmente para que useNuxtApp().$firebaseAuth esté disponible inmediatamente
+  const nuxtApp = useNuxtApp()
+  nuxtApp.provide('firebaseAuth', auth)
+  nuxtApp.provide('firebaseDb', db)
+  nuxtApp.provide('firebaseStorage', storage)
+  nuxtApp.provide('getAnalytics', () => analytics)
+
   // Iniciar la escucha de sesión inmediatamente en el cliente (evita deadlock del router)
   const authStore = useAuthStore()
   authStore.init()
-
-  return {
-    provide: {
-      firebaseAuth: auth,
-      firebaseDb: db,
-      firebaseStorage: storage,
-      getAnalytics: () => analytics,
-    },
-  }
 })
