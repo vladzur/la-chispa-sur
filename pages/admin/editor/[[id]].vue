@@ -149,7 +149,7 @@ onMounted(async () => {
   if (postId.value) {
     saving.value = true
     try {
-      const post = await $fetch<Post>(`/api/posts/${postId.value}`)
+      const post = await useAuthFetch<Post>(`/api/posts/${postId.value}`)
       title.value = post.title
       headerImageUrl.value = post.headerImageUrl
       published.value = post.published !== false
@@ -194,7 +194,7 @@ const savePost = async () => {
       const formData = new FormData()
       formData.append('file', fileToUpload.value)
       if (postId.value) formData.append('postId', postId.value)
-      const { url } = await $fetch<{ url: string }>('/api/admin/upload-image', {
+      const { url } = await useAuthFetch<{ url: string }>('/api/admin/upload-image', {
         method: 'POST',
         body: formData,
       })
@@ -209,9 +209,9 @@ const savePost = async () => {
     }
 
     if (isEditing.value && postId.value) {
-      await ($fetch as any)(`/api/posts/${postId.value}`, { method: 'PATCH', body: postData })
+      await useAuthFetch(`/api/posts/${postId.value}`, { method: 'PATCH', body: postData })
     } else {
-      await $fetch('/api/posts', {
+      await useAuthFetch('/api/posts', {
         method: 'POST',
         body: {
           ...postData,

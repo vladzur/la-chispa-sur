@@ -176,7 +176,7 @@ const loadPosts = async () => {
   postsLoading.value = true
   try {
     // Usar la API route — incluye borradores para el admin
-    const all = await $fetch<Post[]>('/api/posts/all')
+    const all = await useAuthFetch<Post[]>('/api/posts/all')
     posts.value = all
   } catch {
     posts.value = []
@@ -194,7 +194,7 @@ const formatDate = (iso: string | null | undefined) => {
 
 const handleDelete = async (id: string) => {
   if (!confirm('¿Estás seguro de que quieres borrar esta noticia?')) return
-  await ($fetch as any)(`/api/posts/${id}`, { method: 'DELETE' })
+  await useAuthFetch(`/api/posts/${id}`, { method: 'DELETE' })
   await loadPosts()
 }
 
@@ -211,8 +211,8 @@ const loadEditors = async () => {
   editorsLoading.value = true
   try {
     const [pending, editors] = await Promise.all([
-      $fetch<EditorUser[]>('/api/admin/users?role=pending'),
-      $fetch<EditorUser[]>('/api/admin/users?role=editor'),
+      useAuthFetch<EditorUser[]>('/api/admin/users?role=pending'),
+      useAuthFetch<EditorUser[]>('/api/admin/users?role=editor'),
     ])
     pendingUsers.value = pending
     activeEditors.value = editors
@@ -229,7 +229,7 @@ const copied = ref(false)
 const handleGenerateInvite = async () => {
   generatingInvite.value = true
   try {
-    const { token } = await $fetch<{ token: string }>('/api/admin/invite', { method: 'POST' })
+    const { token } = await useAuthFetch<{ token: string }>('/api/admin/invite', { method: 'POST' })
     generatedLink.value = `${window.location.origin}/registro/${token}`
     copied.value = false
   } finally {
@@ -248,7 +248,7 @@ const handleApprove = async (uid: string) => {
   if (!confirm('¿Aprobar este editor?')) return
   actionLoading.value = uid
   try {
-    await $fetch('/api/admin/editors', { method: 'POST', body: { uid, action: 'approve' } })
+    await useAuthFetch('/api/admin/editors', { method: 'POST', body: { uid, action: 'approve' } })
     await loadEditors()
   } finally { actionLoading.value = null }
 }
@@ -257,7 +257,7 @@ const handleReject = async (uid: string) => {
   if (!confirm('¿Rechazar y eliminar este usuario?')) return
   actionLoading.value = uid
   try {
-    await $fetch('/api/admin/editors', { method: 'POST', body: { uid, action: 'reject' } })
+    await useAuthFetch('/api/admin/editors', { method: 'POST', body: { uid, action: 'reject' } })
     await loadEditors()
   } finally { actionLoading.value = null }
 }
@@ -266,7 +266,7 @@ const handleRevoke = async (uid: string) => {
   if (!confirm('¿Revocar el acceso de este editor?')) return
   actionLoading.value = uid
   try {
-    await $fetch('/api/admin/editors', { method: 'POST', body: { uid, action: 'revoke' } })
+    await useAuthFetch('/api/admin/editors', { method: 'POST', body: { uid, action: 'revoke' } })
     await loadEditors()
   } finally { actionLoading.value = null }
 }
@@ -275,7 +275,7 @@ const handleDeleteEditor = async (uid: string) => {
   if (!confirm('¿Eliminar permanentemente este editor?')) return
   actionLoading.value = uid
   try {
-    await $fetch('/api/admin/editors', { method: 'POST', body: { uid, action: 'delete' } })
+    await useAuthFetch('/api/admin/editors', { method: 'POST', body: { uid, action: 'delete' } })
     await loadEditors()
   } finally { actionLoading.value = null }
 }
