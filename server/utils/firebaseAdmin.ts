@@ -18,12 +18,16 @@ const getAdminApp = (): App => {
 
   const config = useRuntimeConfig()
 
+  const projectId = process.env.FIREBASE_PROJECT_ID || config.firebaseProjectId
+  const clientEmail = process.env.FIREBASE_CLIENT_EMAIL || config.firebaseClientEmail
+  const privateKey = process.env.FIREBASE_PRIVATE_KEY || config.firebasePrivateKey
+
   _app = initializeApp({
     credential: cert({
-      projectId: config.firebaseProjectId,
-      clientEmail: config.firebaseClientEmail,
+      projectId,
+      clientEmail,
       // Las nuevlines escapadas de los env vars se deben restaurar
-      privateKey: config.firebasePrivateKey.replace(/\\n/g, '\n'),
+      privateKey: privateKey.replace(/\\n/g, '\n'),
     }),
     storageBucket: config.public.firebaseStorageBucket,
   })
