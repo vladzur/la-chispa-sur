@@ -39,47 +39,50 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  if (!requiresAuth) return
-
   // ── VERIFICACIÓN DEL TOKEN ──
   const authHeader = getHeader(event, 'authorization')
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+
+  if (!requiresAuth && !authHeader) return
+
+  if (requiresAuth && (!authHeader || !authHeader.startsWith('Bearer '))) {
     throw createError({ statusCode: 401, message: 'No Autorizado: Se requiere token de autenticación' })
   }
 
-  const token = authHeader.split('Bearer ')[1]
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const token = authHeader.split('Bearer ')[1]
 
-  try {
-    const decodedToken = await getAdminAuth().verifyIdToken(token)
-    
-    // Obtener rol del usuario desde Firestore
-    const userDoc = await getAdminDb().collection('users').doc(decodedToken.uid).get()
-    const role = userDoc.exists ? userDoc.data()?.role : null
+    try {
+      const decodedToken = await getAdminAuth().verifyIdToken(token)
 
-    // Validar estado de la cuenta (debe estar aprobado)
-    if (role !== 'admin' && role !== 'editor') {
-      throw createError({ statusCode: 403, message: 'Prohibido: Cuenta pendiente o sin permisos' })
-    }
+      // Obtener rol del usuario desde Firestore
+      const userDoc = await getAdminDb().collection('users').doc(decodedToken.uid).get()
+      const role = userDoc.exists ? userDoc.data()?.role : null
 
-    // Validar privilegios de administrador si la ruta lo requiere
-    if (requiresAdmin && role !== 'admin') {
-      throw createError({ statusCode: 403, message: 'Prohibido: Privilegios de administrador requeridos' })
-    }
+      // Validar estado de la cuenta (debe estar aprobado)
+      if (requiresAuth && role !== 'admin' && role !== 'editor') {
+        throw createError({ statusCode: 403, message: 'Prohibido: Cuenta pendiente o sin permisos' })
+      }
 
-    // Inyectar el usuario en el contexto para uso posterior (opcional)
-    event.context.user = {
-      uid: decodedToken.uid,
-      email: decodedToken.email,
-      role: role
+      // Validar privilegios de administrador si la ruta lo requiere
+      if (requiresAdmin && role !== 'admin') {
+        throw createError({ statusCode: 403, message: 'Prohibido: Privilegios de administrador requeridos' })
+      }
+
+      // Inyectar el usuario en el contexto para uso posterior (opcional)
+      event.context.user = {
+        uid: decodedToken.uid,
+        email: decodedToken.email,
+        role: role
+      }
+    } catch (error: any) {
+      console.error('[API AUTH ERROR]', error.message)
+      if (requiresAuth) {
+        if (error.code?.startsWith('auth/')) {
+          throw createError({ statusCode: 401, message: 'No Autorizado: Token inválido o expirado' })
+        }
+        if (error.statusCode) throw error
+        throw createError({ statusCode: 500, message: 'Error interno en la verificación de seguridad' })
+      }
     }
-  } catch (error: any) {
-    console.error('[API AUTH ERROR]', error.message)
-    // Si el error es de firebase (ej: token expirado)
-    if (error.code?.startsWith('auth/')) {
-      throw createError({ statusCode: 401, message: 'No Autorizado: Token inválido o expirado' })
-    }
-    // Si ya es un createError, relanzarlo
-    if (error.statusCode) throw error
-    throw createError({ statusCode: 500, message: 'Error interno en la verificación de seguridad' })
   }
 })

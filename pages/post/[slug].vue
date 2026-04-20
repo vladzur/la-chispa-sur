@@ -89,19 +89,22 @@ definePageMeta({ layout: 'default' })
 
 const route = useRoute()
 const config = useRuntimeConfig()
+const authStore = useAuthStore()
 const slug = route.params.slug as string
 
 // ── SSR Data Fetching ─────────────────────────────────────────────────────────
 // Todo ocurre en el servidor. El HTML que llega al crawler ya contiene el artículo.
-const { data: post } = await useAsyncData<Post | null>(
+const { data: post, execute } = await useAsyncData<Post | null>(
   `post-${slug}`,
-  () => $fetch<Post>(`/api/posts/${slug}`).catch(() => null)
+  () => {
+    if (import.meta.client) {
+      return useAuthFetch<Post>(`/api/posts/${slug}`).catch(() => null)
+    }
+    return $fetch<Post>(`/api/posts/${slug}`).catch(() => null)
+  }
 )
 
-// 404 automático si el artículo no existe
-if (!post.value) {
-  throw createError({ statusCode: 404, statusMessage: 'Artículo no encontrado', fatal: true })
-}
+// El error 404 automático ahora se maneja dentro de onMounted -> refetchPost
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 const SITE_URL = config.public.siteUrl
@@ -189,8 +192,30 @@ useHead({
 const copied = ref(false)
 const currentUrl = ref('')
 
-onMounted(() => {
+const refetchPost = async () => {
+  await execute()
+  if (!post.value) {
+    throw createError({ statusCode: 404, statusMessage: 'Artículo no encontrado', fatal: true })
+  }
+}
+
+onMounted(async () => {
   currentUrl.value = window.location.href
+  
+  // Si en SSR no se cargó el post (ej. era borrador y requería token)
+  if (!post.value) {
+    if (authStore.loading) {
+      // Esperamos a que la autenticación se inicialice
+      const unwatch = watch(() => authStore.loading, async (isLoading) => {
+        if (!isLoading) {
+          unwatch()
+          await refetchPost()
+        }
+      })
+    } else {
+      await refetchPost()
+    }
+  }
 })
 
 const shareText = () => post.value ? `Mira esta noticia: ${post.value.title}` : 'Mira esta noticia'
