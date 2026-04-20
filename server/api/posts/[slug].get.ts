@@ -16,10 +16,12 @@ export default defineEventHandler(async (event) => {
       throw createError({ statusCode: 404, message: 'Artículo no encontrado' })
     }
 
-    // Posts no publicados: solo devolver a admins (verificado via cookie/sesión en el futuro)
-    // Por ahora los posts no publicados están protegidos por Firestore Rules en el cliente
+    // Posts no publicados: solo devolver a admins y editores
     if (post.published === false) {
-      throw createError({ statusCode: 404, message: 'Artículo no encontrado' })
+      const user = event.context.user
+      if (!user || (user.role !== 'admin' && user.role !== 'editor')) {
+        throw createError({ statusCode: 404, message: 'Artículo no encontrado' })
+      }
     }
 
     // Cache: 60s en CDN, stale-while-revalidate para no bloquear al usuario
