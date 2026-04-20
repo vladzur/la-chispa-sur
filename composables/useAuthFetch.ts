@@ -22,5 +22,5 @@ export const useAuthFetch = async <T = any>(request: string, opts?: any): Promis
     }
   }
 
-  return $fetch<T>(request, options)
+  return $fetch<T>(request, options) as Promise<T>
 }
