@@ -20,10 +20,11 @@ export default defineNuxtRouteMiddleware(async (to) => {
     })
   }
 
-  const requiresAuth = to.meta.requiresAuth as boolean | undefined
-  const requiresAdmin = to.meta.requiresAdmin as boolean | undefined
-  const requiresApproved = to.meta.requiresApproved as boolean | undefined
-  const guestOnly = to.meta.guestOnly as boolean | undefined
+  const pageMeta = (to.meta.meta || to.meta) as any
+  const requiresAuth = pageMeta.requiresAuth as boolean | undefined
+  const requiresAdmin = pageMeta.requiresAdmin as boolean | undefined
+  const requiresApproved = pageMeta.requiresApproved as boolean | undefined
+  const guestOnly = pageMeta.guestOnly as boolean | undefined
 
   // Ruta solo para invitados (registro): redirigir si ya está logueado
   if (guestOnly && authStore.user) {
