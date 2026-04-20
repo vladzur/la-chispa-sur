@@ -48,6 +48,19 @@ import type { Post } from '~/types/post'
 
 const props = defineProps<{ post: Post; isLcp?: boolean }>()
 
+if (props.isLcp && props.post.headerImageUrl) {
+  useHead({
+    link: [
+      {
+        rel: 'preload',
+        as: 'image',
+        href: props.post.headerImageUrl,
+        fetchpriority: 'high'
+      }
+    ]
+  })
+}
+
 const formattedDate = computed(() => {
   if (!props.post.createdAt) return ''
   // createdAt ya viene como ISO string desde el servidor (serializado)
