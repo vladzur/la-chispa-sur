@@ -17,8 +17,8 @@ export default defineEventHandler(async (event) => {
     // /api/posts/all es protegido
     if (path.includes('/all')) {
       requiresAuth = true
-    } else if (method !== 'GET') {
-      requiresAuth = true // POST, PATCH, DELETE requieren auth
+    } else if (method !== 'GET' && !path.endsWith('/kudos')) {
+      requiresAuth = true // POST, PATCH, DELETE requieren auth, excepto kudos
     }
   }
 
