@@ -54,10 +54,11 @@ if (import.meta.client) {
   watchEffect(() => {
     if (authStore.loading) return
 
-    const requiresAuth = route.meta.requiresAuth as boolean | undefined
-    const requiresAdmin = route.meta.requiresAdmin as boolean | undefined
-    const requiresApproved = route.meta.requiresApproved as boolean | undefined
-    const guestOnly = route.meta.guestOnly as boolean | undefined
+    const pageMeta = (route.meta.meta || route.meta) as any
+    const requiresAuth = pageMeta.requiresAuth as boolean | undefined
+    const requiresAdmin = pageMeta.requiresAdmin as boolean | undefined
+    const requiresApproved = pageMeta.requiresApproved as boolean | undefined
+    const guestOnly = pageMeta.guestOnly as boolean | undefined
 
     if (guestOnly && authStore.user) {
       router.push(authStore.isPending ? '/pendiente' : '/')
