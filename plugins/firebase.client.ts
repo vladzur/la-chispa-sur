@@ -34,6 +34,10 @@ export default defineNuxtPlugin(() => {
     if (supported) analytics = getAnalytics(app)
   })
 
+  // Iniciar la escucha de sesión inmediatamente en el cliente (evita deadlock del router)
+  const authStore = useAuthStore()
+  authStore.init()
+
   return {
     provide: {
       firebaseAuth: auth,

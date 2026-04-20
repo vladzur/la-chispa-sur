@@ -44,10 +44,7 @@
 <script setup lang="ts">
 const authStore = useAuthStore()
 
-// Inicializar listener de auth solo en cliente
-onMounted(() => {
-  authStore.init()
-})
+// Inicialización movida al plugin de firebase.client.ts para evitar deadlocks en el router
 
 // Title template global
 useHead({

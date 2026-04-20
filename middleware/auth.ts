@@ -7,8 +7,18 @@ export default defineNuxtRouteMiddleware((to) => {
 
   const authStore = useAuthStore()
 
-  // Si el auth aún está cargando, no hacemos nada (el watcher en la página lo maneja)
-  if (authStore.loading) return
+  // Si el auth aún está cargando, ESPERAMOS a que termine antes de decidir
+  // si dejamos pasar al usuario a la ruta protegida.
+  if (authStore.loading) {
+    await new Promise<void>((resolve) => {
+      const unwatch = watch(() => authStore.loading, (isLoading) => {
+        if (!isLoading) {
+          unwatch()
+          resolve()
+        }
+      })
+    })
+  }
 
   const requiresAuth = to.meta.requiresAuth as boolean | undefined
   const requiresAdmin = to.meta.requiresAdmin as boolean | undefined
