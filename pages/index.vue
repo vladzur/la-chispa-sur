@@ -67,18 +67,35 @@ const remainingPosts = computed(() => {
   return allPosts.value.filter(p => p.id !== featuredPost.value?.id)
 })
 
-// 3. Agrupar posts por categoría
+// 3. Agrupar posts por categoría con orden específico
 const groupedPosts = computed(() => {
   const groups: Record<string, Post[]> = {}
   
+  // Definir el orden deseado
+  const order = ['Actualidad', 'Nacional', 'Regional', 'Política', 'Cultura', 'Opinión']
+  
+  // Agrupar
   remainingPosts.value.forEach(post => {
     const cat = post.category || 'Actualidad'
-    if (!groups[cat]) {
-      groups[cat] = []
-    }
+    if (!groups[cat]) groups[cat] = []
     groups[cat].push(post)
   })
   
-  return groups
+  // Retornar un objeto ordenado (solo las categorías que existen en los posts)
+  const sortedGroups: Record<string, Post[]> = {}
+  order.forEach(cat => {
+    if (groups[cat] && groups[cat].length > 0) {
+      sortedGroups[cat] = groups[cat]
+    }
+  })
+  
+  // Añadir categorías que no están en la lista predefinida (por si acaso)
+  Object.keys(groups).forEach(cat => {
+    if (!order.includes(cat)) {
+      sortedGroups[cat] = groups[cat]
+    }
+  })
+
+  return sortedGroups
 })
 </script>
