@@ -43,9 +43,13 @@
             <div class="list-item__info">
               <div class="list-item__title-row">
                 <span class="list-item__title">{{ post.title }}</span>
+                <span v-if="post.isFeatured" class="badge badge--featured">⭐ Destacado</span>
                 <span v-if="post.published === false" class="badge badge--draft">Borrador</span>
               </div>
-              <span class="list-item__meta">{{ formatDate(post.createdAt) }}</span>
+              <div class="list-item__meta">
+                <span v-if="post.category" class="category-tag">{{ post.category }}</span>
+                <span>{{ formatDate(post.createdAt) }}</span>
+              </div>
             </div>
             <div class="list-item__actions">
               <NuxtLink :to="`/post/${post.slug || post.id}`" target="_blank" class="action-link action-link--view">Ver</NuxtLink>
@@ -297,6 +301,9 @@ const handleDeleteEditor = async (uid: string) => {
 .badge-count--inline { background: #ef4444; color: white; font-size: 0.75rem; font-weight: 700; padding: 0.2rem 0.6rem; border-radius: 100px; }
 .badge { display: inline-flex; align-items: center; padding: 0.2rem 0.6rem; border-radius: 100px; font-size: 0.72rem; font-weight: 600; }
 .badge--draft { background: #fef3c7; color: #92400e; }
+.badge--featured { background: #dcfce7; color: #166534; }
+
+.category-tag { background: #f3f4f6; color: #4b5563; padding: 0.1rem 0.4rem; border-radius: 4px; font-size: 0.7rem; font-weight: 700; margin-right: 0.5rem; text-transform: uppercase; }
 
 .btn-primary { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.6rem 1.2rem; background: var(--color-primary); color: white; border: none; border-radius: 8px; font-size: 0.875rem; font-weight: 600; cursor: pointer; text-decoration: none; transition: all 0.2s; }
 .btn-primary:hover:not(:disabled) { filter: brightness(1.1); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(26,54,93,0.3); }

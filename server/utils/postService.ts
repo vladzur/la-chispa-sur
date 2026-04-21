@@ -17,6 +17,8 @@ export interface Post {
   updatedAt: string
   published?: boolean
   kudosCount?: number
+  category?: string
+  isFeatured?: boolean
 }
 
 /**
@@ -35,6 +37,8 @@ const toPost = (docSnap: DocumentSnapshot): Post => {
     authorName: data.authorName ?? null,
     published: data.published ?? true,
     kudosCount: data.kudosCount ?? 0,
+    category: data.category ?? 'Actualidad',
+    isFeatured: data.isFeatured ?? false,
     createdAt: data.createdAt?.toDate?.().toISOString() ?? '',
     updatedAt: data.updatedAt?.toDate?.().toISOString() ?? '',
   }
@@ -76,6 +80,22 @@ export const getPublishedPosts = async (): Promise<Post[]> => {
   // Alternativa más simple y sin índice: filtrar en memoria.
   const snapshot = await db
     .collection('posts')
+    .orderBy('createdAt', 'desc')
+    .get()
+
+  return snapshot.docs
+    .map(toPost)
+    .filter((p) => p.published !== false)
+}
+
+/**
+ * Lista posts publicados filtrados por categoría.
+ */
+export const getPostsByCategory = async (category: string): Promise<Post[]> => {
+  const db = getAdminDb()
+  const snapshot = await db
+    .collection('posts')
+    .where('category', '==', category)
     .orderBy('createdAt', 'desc')
     .get()
 

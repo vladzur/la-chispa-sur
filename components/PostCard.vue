@@ -31,8 +31,9 @@
           {{ post.title }}
         </NuxtLink>
       </h2>
-      <div class="text-gray-500 text-xs uppercase tracking-wider mb-4 font-sans font-medium">
-        {{ formattedDate }}
+      <div class="text-gray-500 text-xs uppercase tracking-wider mb-4 font-sans font-medium flex items-center">
+        <span v-if="post.category" class="bg-primary/10 text-primary px-2 py-0.5 rounded mr-3">{{ post.category }}</span>
+        <span>{{ formattedDate }}</span>
         <span v-if="post.authorName" class="ml-2">&bull; {{ post.authorName }}</span>
       </div>
       <!-- Preview de contenido — strip HTML server-safe -->
