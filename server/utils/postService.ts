@@ -93,15 +93,16 @@ export const getPublishedPosts = async (): Promise<Post[]> => {
  */
 export const getPostsByCategory = async (category: string): Promise<Post[]> => {
   const db = getAdminDb()
+  
+  // Obtenemos todos ordenados por fecha y filtramos en memoria para evitar errores de índice compuesto
   const snapshot = await db
     .collection('posts')
-    .where('category', '==', category)
     .orderBy('createdAt', 'desc')
     .get()
 
   return snapshot.docs
     .map(toPost)
-    .filter((p) => p.published !== false)
+    .filter((p) => p.published !== false && p.category === category)
 }
 
 /**
