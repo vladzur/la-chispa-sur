@@ -22,6 +22,8 @@ export default defineEventHandler(async (event) => {
       authorName: body.authorName || '',
       slug,
       published: body.published ?? true,
+      category: body.category || 'Actualidad',
+      isFeatured: body.isFeatured ?? false,
       kudosCount: 0,
       createdAt: FieldValue.serverTimestamp(),
       updatedAt: FieldValue.serverTimestamp(),

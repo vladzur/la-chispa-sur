@@ -11,4 +11,6 @@ export interface Post {
   updatedAt: string   // ISO string
   published?: boolean
   kudosCount?: number
+  category?: string
+  isFeatured?: boolean
 }

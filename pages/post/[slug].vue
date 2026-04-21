@@ -5,6 +5,11 @@
     class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10 bg-white shadow-sm mt-10 rounded-md border border-gray-100"
   >
     <header class="mb-10 text-center">
+      <div class="mb-6" v-if="post.category">
+        <span class="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-bold uppercase tracking-widest">
+          {{ post.category }}
+        </span>
+      </div>
       <h1 class="text-4xl lg:text-5xl font-extrabold font-sans text-text-heading leading-tight mb-4">
         {{ post.title }}
       </h1>
