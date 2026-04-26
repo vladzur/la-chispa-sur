@@ -34,13 +34,29 @@ export const useAuthStore = defineStore('auth', () => {
 
       if (currentUser) {
         try {
+          // Leer los Custom Claims primero
+          const idTokenResult = await currentUser.getIdTokenResult()
+          
+          if (idTokenResult.claims.admin) {
+            _setRole('admin')
+          } else if (idTokenResult.claims.editor) {
+            _setRole('editor')
+          } else {
+            // Fallback
+            _setRole('pending')
+          }
+
+          // Obtener nombre desde Firestore (ya que no viene en claims por defecto)
           const userDoc = await getDoc(doc($firebaseDb, 'users', currentUser.uid))
           if (userDoc.exists()) {
             const data = userDoc.data()
-            _setRole(data.role as UserRole)
             userName.value = data.name || ''
+            
+            // Si no había claims (migración en progreso), fallar a Firestore
+            if (!idTokenResult.claims.admin && !idTokenResult.claims.editor) {
+              _setRole(data.role as UserRole)
+            }
           } else {
-            _resetRole()
             userName.value = ''
           }
         } catch (error) {
@@ -62,6 +78,19 @@ export const useAuthStore = defineStore('auth', () => {
     await firebaseSignOut($firebaseAuth)
   }
 
+  const refreshToken = async (force: boolean = true) => {
+    if (user.value) {
+      const idTokenResult = await user.value.getIdTokenResult(force)
+      if (idTokenResult.claims.admin) {
+        _setRole('admin')
+      } else if (idTokenResult.claims.editor) {
+        _setRole('editor')
+      } else {
+        _setRole('pending')
+      }
+    }
+  }
+
   return {
     user,
     role,
@@ -73,5 +102,6 @@ export const useAuthStore = defineStore('auth', () => {
     loading,
     init,
     signOut,
+    refreshToken,
   }
 })

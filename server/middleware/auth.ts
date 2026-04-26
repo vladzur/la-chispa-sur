@@ -54,17 +54,16 @@ export default defineEventHandler(async (event) => {
     try {
       const decodedToken = await getAdminAuth().verifyIdToken(token)
 
-      // Obtener rol del usuario desde Firestore
-      const userDoc = await getAdminDb().collection('users').doc(decodedToken.uid).get()
-      const role = userDoc.exists ? userDoc.data()?.role : null
+      const isAdmin = decodedToken.admin === true
+      const isEditor = decodedToken.editor === true
 
       // Validar estado de la cuenta (debe estar aprobado)
-      if (requiresAuth && role !== 'admin' && role !== 'editor') {
+      if (requiresAuth && !isAdmin && !isEditor) {
         throw createError({ statusCode: 403, message: 'Prohibido: Cuenta pendiente o sin permisos' })
       }
 
       // Validar privilegios de administrador si la ruta lo requiere
-      if (requiresAdmin && role !== 'admin') {
+      if (requiresAdmin && !isAdmin) {
         throw createError({ statusCode: 403, message: 'Prohibido: Privilegios de administrador requeridos' })
       }
 
@@ -72,7 +71,8 @@ export default defineEventHandler(async (event) => {
       event.context.user = {
         uid: decodedToken.uid,
         email: decodedToken.email,
-        role: role
+        isAdmin,
+        isEditor
       }
     } catch (error: any) {
       console.error('[API AUTH ERROR]', error.message)
