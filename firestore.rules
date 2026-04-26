@@ -3,16 +3,12 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     // ── Helpers de rol ──────────────────────────────────────────────────────
-    function getUserData() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
-    }
-
     function isAdmin() {
-      return request.auth != null && getUserData().role == 'admin';
+      return request.auth != null && request.auth.token.admin == true;
     }
 
     function isEditor() {
-      return request.auth != null && getUserData().role == 'editor';
+      return request.auth != null && request.auth.token.editor == true;
     }
 
     function isApproved() {
