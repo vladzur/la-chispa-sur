@@ -5,6 +5,24 @@
       <FeaturedPost :post="featuredPost" />
     </section>
 
+    <!-- Posts Recientes -->
+    <section v-if="recentPosts.length > 0" class="mb-20">
+      <div class="flex items-center mb-8">
+        <h2 class="text-3xl font-extrabold text-text-heading font-sans tracking-tight pr-4">
+          Lo más reciente
+        </h2>
+        <div class="flex-grow border-t-2 border-primary/20"></div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <PostCard
+          v-for="post in recentPosts"
+          :key="post.id"
+          :post="post"
+        />
+      </div>
+    </section>
+
     <!-- Secciones por Categoría -->
     <div v-if="!allPosts || allPosts.length === 0" class="text-center py-20 text-gray-500 font-medium">
       No hay noticias publicadas todavía.
@@ -67,15 +85,26 @@ const remainingPosts = computed(() => {
   return allPosts.value.filter(p => p.id !== featuredPost.value?.id)
 })
 
-// 3. Agrupar posts por categoría con orden específico
+// 3. Posts más recientes (10 primeros, excluyendo el destacado)
+const recentPosts = computed(() => {
+  return remainingPosts.value.slice(0, 10)
+})
+
+// 4. Posts para categorías (excluyendo destacado y los 10 recientes)
+const categoryPosts = computed(() => {
+  const recentIds = new Set(recentPosts.value.map(p => p.id))
+  return remainingPosts.value.filter(p => !recentIds.has(p.id))
+})
+
+// 5. Agrupar posts por categoría con orden específico
 const groupedPosts = computed(() => {
   const groups: Record<string, Post[]> = {}
-  
+
   // Definir el orden deseado
   const order = ['Actualidad', 'Nacional', 'Regional', 'Política', 'Cultura', 'Opinión']
-  
+
   // Agrupar
-  remainingPosts.value.forEach(post => {
+  categoryPosts.value.forEach(post => {
     const cat = post.category || 'Actualidad'
     if (!groups[cat]) groups[cat] = []
     groups[cat].push(post)
