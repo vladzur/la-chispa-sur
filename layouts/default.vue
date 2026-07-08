@@ -34,6 +34,11 @@
             </svg>
           </a>
         </div>
+        <nav class="flex flex-wrap justify-center gap-x-6 gap-y-2 mb-6 text-sm" aria-label="Información institucional">
+          <NuxtLink to="/quienes-somos" class="text-gray-400 hover:text-white transition-colors">Quiénes Somos</NuxtLink>
+          <NuxtLink to="/linea-editorial" class="text-gray-400 hover:text-white transition-colors">Línea Editorial</NuxtLink>
+          <NuxtLink to="/contacto" class="text-gray-400 hover:text-white transition-colors">Contacto</NuxtLink>
+        </nav>
         <div class="border-t border-gray-700 w-full mb-4"></div>
         <p>&copy; 2026 La Chispa Sur - Periodismo Independiente</p>
       </div>

@@ -25,9 +25,9 @@
 
       <h2 class="text-2xl font-bold text-text-heading font-sans">Nuestro Equipo</h2>
       <p>
-        <strong>Vladimir Zurita</strong> — Fundador, Editor General y Redactor principal. Periodista comprometido
-        con la fiscalización del poder y la cobertura de temáticas sociales, políticas y territoriales desde
-        una mirada crítica.
+        <strong>Vladimir Zurita</strong> — Fundador, Editor General y Redactor principal. Apasionado por entregar información
+        y analizar críticamente los acontecimientos desde una mirada territorial y de izquierda. No ostenta título de periodismo,
+        pero ejerce una labor informativa comprometida con la verdad y la fiscalización del poder.
       </p>
       <p>
         La Chispa Sur se nutre también de colaboradores, columnistas y fuentes territoriales que enriquecen

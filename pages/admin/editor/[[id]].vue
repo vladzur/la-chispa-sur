@@ -64,6 +64,17 @@
             Quitar
           </button>
         </div>
+        <!-- Alt text descriptivo para SEO y accesibilidad -->
+        <div class="mt-2">
+          <label for="editor-image-alt" class="block text-sm font-medium text-gray-700 mb-1">Texto alternativo (alt) — breve descripción de la imagen</label>
+          <input
+            id="editor-image-alt"
+            v-model="headerImageAlt"
+            type="text"
+            placeholder="Ej: Manifestación en el Palacio de La Moneda"
+            class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary focus:ring-primary"
+          />
+        </div>
       </div>
 
       <!-- Editor Tiptap WYSIWYG -->
@@ -132,6 +143,7 @@ const postId = computed(() => route.params.id as string | undefined)
 
 const title = ref('')
 const headerImageUrl = ref('')
+const headerImageAlt = ref('')
 const localImagePreview = ref('')
 const fileToUpload = ref<File | null>(null)
 const saving = ref(false)
@@ -152,6 +164,7 @@ const categories = [
 const editor = useEditor({
   extensions: [
     StarterKit.configure({
+      // SEO: Only h2/h3 allowed — no h1 inside content body (reserved for article title)
       heading: { levels: [2, 3] },
       bulletList: { HTMLAttributes: { class: 'list-disc ml-6 space-y-1' } },
       orderedList: { HTMLAttributes: { class: 'list-decimal ml-6 space-y-1' } },
@@ -184,6 +197,7 @@ onMounted(async () => {
       const post = await useAuthFetch<Post>(`/api/posts/${postId.value}`)
       title.value = post.title
       headerImageUrl.value = post.headerImageUrl
+      headerImageAlt.value = post.headerImageAlt || ''
       published.value = post.published !== false
       isFeatured.value = post.isFeatured || false
       category.value = post.category || 'Actualidad'
@@ -239,6 +253,7 @@ const savePost = async () => {
       title: title.value,
       content: editor.value.getHTML(),
       headerImageUrl: finalImageUrl,
+      headerImageAlt: headerImageAlt.value || null,
       published: published.value,
       category: category.value,
       isFeatured: isFeatured.value,
