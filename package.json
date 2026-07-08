@@ -29,6 +29,7 @@
     "@nuxt/devtools": "latest",
     "@tailwindcss/vite": "^4.2.2",
     "tailwindcss": "^4.2.2",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "vue-tsc": "^2.2.10"
   }
 }

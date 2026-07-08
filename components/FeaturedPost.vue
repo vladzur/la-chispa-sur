@@ -11,7 +11,7 @@
         <img
           v-if="post.headerImageUrl"
           :src="post.headerImageUrl"
-          :alt="post.title"
+          :alt="post.headerImageAlt || post.title"
           class="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
           fetchpriority="high"
           loading="eager"
@@ -37,14 +37,14 @@
           </span>
         </div>
         
-        <h2 class="text-3xl lg:text-4xl font-extrabold font-sans text-text-heading mb-4 leading-tight">
+        <h3 class="text-3xl lg:text-4xl font-extrabold font-sans text-text-heading mb-4 leading-tight">
           <NuxtLink
             :to="`/post/${post.slug || post.id}`"
             class="hover:text-primary transition-colors duration-300"
           >
             {{ post.title }}
           </NuxtLink>
-        </h2>
+        </h3>
         
         <div class="text-gray-500 text-sm mb-6 font-sans">
           {{ formattedDate }}

@@ -68,7 +68,7 @@
     <figure v-if="post.headerImageUrl" class="mb-10">
       <img
         :src="post.headerImageUrl"
-        :alt="post.title"
+        :alt="post.headerImageAlt || post.title"
         width="800"
         height="450"
         fetchpriority="high"

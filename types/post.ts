@@ -5,6 +5,7 @@ export interface Post {
   title: string
   content: string
   headerImageUrl: string
+  headerImageAlt?: string | null
   authorId: string
   authorName?: string | null
   createdAt: string   // ISO string

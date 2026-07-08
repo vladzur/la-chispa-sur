@@ -22,13 +22,24 @@ export default defineEventHandler(async (event) => {
       })
       .join('')
 
+    // URLs de categorías — extraídas de los posts publicados
+    const categories = [...new Set(posts.map(p => p.category).filter(Boolean))]
+    const categoryUrls = categories
+      .map(cat => `
+  <url>
+    <loc>${SITE_URL}/category/${encodeURIComponent(cat as string)}</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>`)
+      .join('')
+
     const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>${SITE_URL}/</loc>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
-  </url>${postUrls}
+  </url>${categoryUrls}${postUrls}
 </urlset>`
 
     setHeader(event, 'Content-Type', 'application/xml; charset=utf-8')

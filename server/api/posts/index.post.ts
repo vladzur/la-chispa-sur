@@ -18,6 +18,7 @@ export default defineEventHandler(async (event) => {
       title: body.title,
       content: body.content,
       headerImageUrl: body.headerImageUrl || '',
+      headerImageAlt: body.headerImageAlt || null,
       authorId: body.authorId || 'unknown',
       authorName: body.authorName || '',
       slug,

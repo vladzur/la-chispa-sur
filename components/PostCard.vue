@@ -9,7 +9,7 @@
       <img
         v-if="post.headerImageUrl"
         :src="post.headerImageUrl"
-        :alt="post.title"
+        :alt="post.headerImageAlt || post.title"
         width="600"
         height="338"
         :loading="isLcp ? 'eager' : 'lazy'"
@@ -23,14 +23,14 @@
     </NuxtLink>
 
     <div class="p-6">
-      <h2 class="text-2xl font-bold font-sans text-text-heading mb-2 leading-tight">
+      <h3 class="text-2xl font-bold font-sans text-text-heading mb-2 leading-tight">
         <NuxtLink
           :to="`/post/${post.slug || post.id}`"
           class="hover:text-primary transition-colors"
         >
           {{ post.title }}
         </NuxtLink>
-      </h2>
+      </h3>
       <div class="text-gray-500 text-xs uppercase tracking-wider mb-4 font-sans font-medium flex items-center">
         <span v-if="post.category" class="bg-primary/10 text-primary px-2 py-0.5 rounded mr-3">{{ post.category }}</span>
         <span>{{ formattedDate }}</span>

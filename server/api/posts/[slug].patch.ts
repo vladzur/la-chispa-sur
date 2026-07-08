@@ -21,6 +21,7 @@ export default defineEventHandler(async (event) => {
     if (body.title !== undefined) updates.title = body.title
     if (body.content !== undefined) updates.content = body.content
     if (body.headerImageUrl !== undefined) updates.headerImageUrl = body.headerImageUrl
+    if (body.headerImageAlt !== undefined) updates.headerImageAlt = body.headerImageAlt
     if (body.published !== undefined) updates.published = body.published
     if (body.category !== undefined) updates.category = body.category
     if (body.isFeatured !== undefined) updates.isFeatured = body.isFeatured

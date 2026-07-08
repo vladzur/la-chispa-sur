@@ -10,6 +10,7 @@ export interface Post {
   title: string
   content: string
   headerImageUrl: string
+  headerImageAlt?: string | null
   authorId: string
   authorName?: string
   // ISO strings — ya NO son Firestore Timestamps (son serializables para Nuxt payload)
@@ -33,6 +34,7 @@ const toPost = (docSnap: DocumentSnapshot): Post => {
     title: data.title ?? '',
     content: data.content ?? '',
     headerImageUrl: data.headerImageUrl ?? '',
+    headerImageAlt: data.headerImageAlt ?? null,
     authorId: data.authorId ?? '',
     authorName: data.authorName ?? null,
     published: data.published ?? true,

@@ -1,5 +1,6 @@
 <template>
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <h1 class="sr-only">La Chispa Sur — Periodismo Crítico desde La Araucanía</h1>
     <!-- Post Destacado -->
     <section v-if="featuredPost" class="mb-20">
       <FeaturedPost :post="featuredPost" />
