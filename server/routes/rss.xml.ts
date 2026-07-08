@@ -11,9 +11,6 @@ const escapeXml = (str: string) =>
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;')
 
-const stripHtml = (html: string) =>
-  html.replace(/<[^>]*>?/gm, '').replace(/&nbsp;/g, ' ').trim()
-
 export default defineEventHandler(async (event) => {
   const SITE_URL = 'https://lachispasur.cl'
 
@@ -25,7 +22,8 @@ export default defineEventHandler(async (event) => {
       .map((p) => {
         const url = `${SITE_URL}/post/${p.slug || p.id}`
         const title = escapeXml(p.title || 'Noticia')
-        const description = escapeXml(stripHtml(p.content).substring(0, 300) + '...')
+        // Entregamos el contenido completo con HTML en CDATA para que los lectores RSS lo rendericen
+        const description = `<![CDATA[${p.content}]]>`
         const pubDate = p.createdAt ? new Date(p.createdAt).toUTCString() : ''
         return `
     <item>
