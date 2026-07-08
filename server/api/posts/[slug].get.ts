@@ -19,7 +19,7 @@ export default defineEventHandler(async (event) => {
     // Posts no publicados: solo devolver a admins y editores
     if (post.published === false) {
       const user = event.context.user
-      if (!user || (user.role !== 'admin' && user.role !== 'editor')) {
+      if (!user || (!user.isAdmin && !user.isEditor)) {
         throw createError({ statusCode: 404, message: 'Artículo no encontrado' })
       }
     }
