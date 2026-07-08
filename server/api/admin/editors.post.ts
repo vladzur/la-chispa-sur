@@ -18,6 +18,10 @@ export default defineEventHandler(async (event) => {
   try {
     switch (action) {
       case 'approve': {
+        const userRecord = await auth.getUser(uid)
+        const currentClaims = userRecord.customClaims || {}
+        await auth.setCustomUserClaims(uid, { ...currentClaims, editor: true })
+        
         await db.collection('users').doc(uid).update({
           role: 'editor',
           approvedAt: FieldValue.serverTimestamp(),
@@ -31,6 +35,10 @@ export default defineEventHandler(async (event) => {
         break
       }
       case 'revoke': {
+        const userRecord = await auth.getUser(uid)
+        const currentClaims = userRecord.customClaims || {}
+        await auth.setCustomUserClaims(uid, { ...currentClaims, editor: false })
+
         await db.collection('users').doc(uid).update({ role: 'pending' })
         break
       }

@@ -254,6 +254,11 @@ const handleApprove = async (uid: string) => {
   try {
     await useAuthFetch('/api/admin/editors', { method: 'POST', body: { uid, action: 'approve' } })
     await loadEditors()
+    
+    // Forzar refresco de sesión en caso de que nos hayamos auto-promovido o queramos claims frescos
+    if (authStore.user?.uid === uid) {
+      await authStore.refreshToken(true)
+    }
   } finally { actionLoading.value = null }
 }
 
@@ -272,6 +277,10 @@ const handleRevoke = async (uid: string) => {
   try {
     await useAuthFetch('/api/admin/editors', { method: 'POST', body: { uid, action: 'revoke' } })
     await loadEditors()
+    
+    if (authStore.user?.uid === uid) {
+      await authStore.refreshToken(true)
+    }
   } finally { actionLoading.value = null }
 }
 
