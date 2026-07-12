@@ -44,6 +44,18 @@
         </div>
       </div>
 
+      <!-- Fecha de publicación programada -->
+      <div>
+        <label for="editor-publish-date" class="block text-sm font-medium text-gray-700 mb-1">Fecha de publicación</label>
+        <input
+          id="editor-publish-date"
+          v-model="publishDateInput"
+          type="datetime-local"
+          class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary focus:ring-primary"
+        />
+        <p class="text-xs text-gray-500 mt-1">Si se deja vacío, la noticia se publica de inmediato.</p>
+      </div>
+
       <!-- Imagen de cabecera -->
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">Imagen de Cabecera</label>
@@ -148,6 +160,7 @@ const localImagePreview = ref('')
 const fileToUpload = ref<File | null>(null)
 const saving = ref(false)
 const published = ref(true)
+const publishDateInput = ref('')  // formato datetime-local (YYYY-MM-DDTHH:mm) para el input
 const isFeatured = ref(false)
 const category = ref('Actualidad')
 
@@ -178,6 +191,17 @@ const editor = useEditor({
   editorProps: { attributes: { class: 'focus:outline-none min-h-[300px]' } },
 })
 
+// ── Helpers para fecha de publicación ──────────────────────────────────────────
+/** Convierte una fecha ISO a formato datetime-local (sin zona horaria, hora local). */
+const toDatetimeLocal = (iso: string): string => {
+  const d = new Date(iso)
+  const pad = (n: number) => String(n).padStart(2, '0')
+  // Ajustar a la zona horaria local y formatear como YYYY-MM-DDTHH:mm
+  const offset = d.getTimezoneOffset()
+  const local = new Date(d.getTime() - offset * 60000)
+  return `${local.getFullYear()}-${pad(local.getMonth() + 1)}-${pad(local.getDate())}T${pad(local.getHours())}:${pad(local.getMinutes())}`
+}
+
 const setLink = () => {
   const previousUrl = editor.value?.getAttributes('link').href as string
   const url = window.prompt('URL del enlace', previousUrl || '')
@@ -201,6 +225,7 @@ onMounted(async () => {
       published.value = post.published !== false
       isFeatured.value = post.isFeatured || false
       category.value = post.category || 'Actualidad'
+      if (post.publishDate) publishDateInput.value = toDatetimeLocal(post.publishDate)
       if (editor.value) editor.value.commands.setContent(post.content)
     } finally {
       saving.value = false
@@ -257,6 +282,7 @@ const savePost = async () => {
       published: published.value,
       category: category.value,
       isFeatured: isFeatured.value,
+      publishDate: publishDateInput.value ? new Date(publishDateInput.value).toISOString() : '',
     }
 
     if (isEditing.value && postId.value) {

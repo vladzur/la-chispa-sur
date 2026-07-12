@@ -23,6 +23,7 @@ export default defineEventHandler(async (event) => {
     if (body.headerImageUrl !== undefined) updates.headerImageUrl = body.headerImageUrl
     if (body.headerImageAlt !== undefined) updates.headerImageAlt = body.headerImageAlt
     if (body.published !== undefined) updates.published = body.published
+    if (body.publishDate !== undefined) updates.publishDate = body.publishDate ? new Date(body.publishDate) : FieldValue.serverTimestamp()
     if (body.category !== undefined) updates.category = body.category
     if (body.isFeatured !== undefined) updates.isFeatured = body.isFeatured
 

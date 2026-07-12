@@ -45,6 +45,7 @@
                 <span class="list-item__title">{{ post.title }}</span>
                 <span v-if="post.isFeatured" class="badge badge--featured">⭐ Destacado</span>
                 <span v-if="post.published === false" class="badge badge--draft">Borrador</span>
+                <span v-else-if="isScheduled(post)" class="badge badge--scheduled">🕐 Programada</span>
               </div>
               <div class="list-item__meta">
                 <span v-if="post.category" class="category-tag">{{ post.category }}</span>
@@ -191,6 +192,8 @@ const loadPosts = async () => {
 
 onMounted(loadPosts)
 
+const isScheduled = (post: Post) => post.publishDate && new Date(post.publishDate) > new Date()
+
 const formatDate = (iso: string | null | undefined) => {
   if (!iso) return ''
   return new Intl.DateTimeFormat('es-CL', { dateStyle: 'medium' }).format(new Date(iso))
@@ -310,6 +313,7 @@ const handleDeleteEditor = async (uid: string) => {
 .badge-count--inline { background: #ef4444; color: white; font-size: 0.75rem; font-weight: 700; padding: 0.2rem 0.6rem; border-radius: 100px; }
 .badge { display: inline-flex; align-items: center; padding: 0.2rem 0.6rem; border-radius: 100px; font-size: 0.72rem; font-weight: 600; }
 .badge--draft { background: #fef3c7; color: #92400e; }
+.badge--scheduled { background: #dbeafe; color: #1e40af; }
 .badge--featured { background: #dcfce7; color: #166534; }
 
 .category-tag { background: #f3f4f6; color: #4b5563; padding: 0.1rem 0.4rem; border-radius: 4px; font-size: 0.7rem; font-weight: 700; margin-right: 0.5rem; text-transform: uppercase; }

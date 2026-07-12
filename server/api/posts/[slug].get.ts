@@ -16,8 +16,9 @@ export default defineEventHandler(async (event) => {
       throw createError({ statusCode: 404, message: 'Artículo no encontrado' })
     }
 
-    // Posts no publicados: solo devolver a admins y editores
-    if (post.published === false) {
+    // Posts no publicados o programados a futuro: solo devolver a admins y editores
+    const isHidden = post.published === false || new Date(post.publishDate) > new Date()
+    if (isHidden) {
       const user = event.context.user
       if (!user || (!user.isAdmin && !user.isEditor)) {
         throw createError({ statusCode: 404, message: 'Artículo no encontrado' })
