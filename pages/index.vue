@@ -86,12 +86,12 @@ const remainingPosts = computed(() => {
   return allPosts.value.filter(p => p.id !== featuredPost.value?.id)
 })
 
-// 3. Posts más recientes (10 primeros, excluyendo el destacado)
+// 3. Posts más recientes (9 primeros, excluyendo el destacado)
 const recentPosts = computed(() => {
-  return remainingPosts.value.slice(0, 10)
+  return remainingPosts.value.slice(0, 9)
 })
 
-// 4. Posts para categorías (excluyendo destacado y los 10 recientes)
+// 4. Posts para categorías (excluyendo destacado y los 9 recientes)
 const categoryPosts = computed(() => {
   const recentIds = new Set(recentPosts.value.map(p => p.id))
   return remainingPosts.value.filter(p => !recentIds.has(p.id))
