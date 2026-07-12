@@ -17,6 +17,7 @@ export interface Post {
   createdAt: string
   updatedAt: string
   published?: boolean
+  publishDate: string  // ISO string — siempre poblado. Iguala createdAt para posts legacy.
   kudosCount?: number
   category?: string
   isFeatured?: boolean
@@ -38,6 +39,7 @@ const toPost = (docSnap: DocumentSnapshot): Post => {
     authorId: data.authorId ?? '',
     authorName: data.authorName ?? null,
     published: data.published ?? true,
+    publishDate: data.publishDate?.toDate?.().toISOString() ?? data.createdAt?.toDate?.().toISOString() ?? new Date().toISOString(),
     kudosCount: data.kudosCount ?? 0,
     category: data.category ?? 'Actualidad',
     isFeatured: data.isFeatured ?? false,
@@ -45,6 +47,14 @@ const toPost = (docSnap: DocumentSnapshot): Post => {
     updatedAt: data.updatedAt?.toDate?.().toISOString() ?? '',
   }
 }
+
+/**
+ * Determina si un post debe ser visible al público.
+ * Un post es visible si está publicado (published !== false) y su fecha de
+ * publicación ya se cumplió (publishDate <= ahora).
+ */
+const isPubliclyVisible = (p: Post): boolean =>
+  p.published !== false && new Date(p.publishDate) <= new Date()
 
 /**
  * Búsqueda dual: primero por slug, luego por ID de documento (retrocompatibilidad).
@@ -78,16 +88,17 @@ export const getPostBySlugOrId = async (slugOrId: string): Promise<Post | null> 
 export const getPublishedPosts = async (): Promise<Post[]> => {
   const db = getAdminDb()
 
-  // Nota: el filtro `published != false` requiere índice compuesto con createdAt.
-  // Alternativa más simple y sin índice: filtrar en memoria.
+  // Ordenamos por publishDate (fecha de publicación) para que las noticias
+  // programadas aparezcan en el orden correcto al cumplirse su fecha.
+  // El filtro de visibilidad se hace en memoria para evitar índices compuestos.
   const snapshot = await db
     .collection('posts')
-    .orderBy('createdAt', 'desc')
+    .orderBy('publishDate', 'desc')
     .get()
 
   return snapshot.docs
     .map(toPost)
-    .filter((p) => p.published !== false)
+    .filter(isPubliclyVisible)
 }
 
 /**
@@ -95,16 +106,16 @@ export const getPublishedPosts = async (): Promise<Post[]> => {
  */
 export const getPostsByCategory = async (category: string): Promise<Post[]> => {
   const db = getAdminDb()
-  
-  // Obtenemos todos ordenados por fecha y filtramos en memoria para evitar errores de índice compuesto
+
+  // Obtenemos todos ordenados por publishDate y filtramos en memoria para evitar errores de índice compuesto
   const snapshot = await db
     .collection('posts')
-    .orderBy('createdAt', 'desc')
+    .orderBy('publishDate', 'desc')
     .get()
 
   return snapshot.docs
     .map(toPost)
-    .filter((p) => p.published !== false && p.category === category)
+    .filter((p) => isPubliclyVisible(p) && p.category === category)
 }
 
 /**
@@ -115,7 +126,7 @@ export const getPostsByAuthor = async (authorId: string): Promise<Post[]> => {
   const snapshot = await db
     .collection('posts')
     .where('authorId', '==', authorId)
-    .orderBy('createdAt', 'desc')
+    .orderBy('publishDate', 'desc')
     .get()
   return snapshot.docs.map(toPost)
 }
@@ -127,7 +138,7 @@ export const getAllPosts = async (): Promise<Post[]> => {
   const db = getAdminDb()
   const snapshot = await db
     .collection('posts')
-    .orderBy('createdAt', 'desc')
+    .orderBy('publishDate', 'desc')
     .get()
   return snapshot.docs.map(toPost)
 }

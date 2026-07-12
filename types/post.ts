@@ -11,6 +11,7 @@ export interface Post {
   createdAt: string   // ISO string
   updatedAt: string   // ISO string
   published?: boolean
+  publishDate: string  // ISO string — siempre poblado. Iguala createdAt para posts legacy.
   kudosCount?: number
   category?: string
   isFeatured?: boolean
