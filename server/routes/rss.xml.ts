@@ -24,7 +24,7 @@ export default defineEventHandler(async (event) => {
         const title = escapeXml(p.title || 'Noticia')
         // Entregamos el contenido completo con HTML en CDATA para que los lectores RSS lo rendericen
         const description = `<![CDATA[${p.content}]]>`
-        const pubDate = p.createdAt ? new Date(p.createdAt).toUTCString() : ''
+        const pubDate = p.publishDate ? new Date(p.publishDate).toUTCString() : ''
         return `
     <item>
       <title>${title}</title>
