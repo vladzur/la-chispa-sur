@@ -98,6 +98,7 @@
           <button type="button" @click="editor.chain().focus().toggleStrike().run()" :class="{ 'bg-gray-200': editor.isActive('strike') }" class="px-3 py-1 rounded text-sm line-through hover:bg-gray-200 border border-gray-300">Strike</button>
           <button type="button" @click="editor.chain().focus().toggleHeading({ level: 2 }).run()" :class="{ 'bg-gray-200': editor.isActive('heading', { level: 2 }) }" class="px-3 py-1 rounded text-sm font-bold hover:bg-gray-200 border border-gray-300">H2</button>
           <button type="button" @click="editor.chain().focus().toggleHeading({ level: 3 }).run()" :class="{ 'bg-gray-200': editor.isActive('heading', { level: 3 }) }" class="px-3 py-1 rounded text-sm font-bold hover:bg-gray-200 border border-gray-300">H3</button>
+          <button type="button" @click="editor.chain().focus().toggleHeading({ level: 4 }).run()" :class="{ 'bg-gray-200': editor.isActive('heading', { level: 4 }) }" class="px-3 py-1 rounded text-sm font-bold hover:bg-gray-200 border border-gray-300">H4</button>
           <button type="button" @click="editor.chain().focus().toggleBulletList().run()" :class="{ 'bg-gray-200': editor.isActive('bulletList') }" class="px-3 py-1 rounded text-sm hover:bg-gray-200 border border-gray-300">• Lista</button>
           <button type="button" @click="editor.chain().focus().toggleOrderedList().run()" :class="{ 'bg-gray-200': editor.isActive('orderedList') }" class="px-3 py-1 rounded text-sm hover:bg-gray-200 border border-gray-300">1. Lista</button>
           <button type="button" @click="setLink" :class="{ 'bg-gray-200': editor.isActive('link') }" class="px-3 py-1 rounded text-sm hover:bg-gray-200 border border-gray-300">Enlace</button>
@@ -177,8 +178,8 @@ const categories = [
 const editor = useEditor({
   extensions: [
     StarterKit.configure({
-      // SEO: Only h2/h3 allowed — no h1 inside content body (reserved for article title)
-      heading: { levels: [2, 3] },
+      // SEO: h2/h3/h4 permitidos — h1 reservado para el título del artículo
+      heading: { levels: [2, 3, 4] },
       bulletList: { HTMLAttributes: { class: 'list-disc ml-6 space-y-1' } },
       orderedList: { HTMLAttributes: { class: 'list-decimal ml-6 space-y-1' } },
       listItem: { HTMLAttributes: { class: 'pl-1' } },
@@ -192,14 +193,13 @@ const editor = useEditor({
 })
 
 // ── Helpers para fecha de publicación ──────────────────────────────────────────
-/** Convierte una fecha ISO a formato datetime-local (sin zona horaria, hora local). */
+/** Convierte una fecha ISO a formato datetime-local, usando la hora local del navegador. */
 const toDatetimeLocal = (iso: string): string => {
   const d = new Date(iso)
   const pad = (n: number) => String(n).padStart(2, '0')
-  // Ajustar a la zona horaria local y formatear como YYYY-MM-DDTHH:mm
-  const offset = d.getTimezoneOffset()
-  const local = new Date(d.getTime() - offset * 60000)
-  return `${local.getFullYear()}-${pad(local.getMonth() + 1)}-${pad(local.getDate())}T${pad(local.getHours())}:${pad(local.getMinutes())}`
+  // getFullYear, getMonth, getDate, getHours y getMinutes ya retornan valores en hora local.
+  // No es necesario aplicar getTimezoneOffset manualmente.
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
 const setLink = () => {
@@ -274,7 +274,7 @@ const savePost = async () => {
       finalImageUrl = url
     }
 
-    const postData = {
+    const postData: Record<string, unknown> = {
       title: title.value,
       content: editor.value.getHTML(),
       headerImageUrl: finalImageUrl,
@@ -282,7 +282,12 @@ const savePost = async () => {
       published: published.value,
       category: category.value,
       isFeatured: isFeatured.value,
-      publishDate: publishDateInput.value ? new Date(publishDateInput.value).toISOString() : '',
+    }
+
+    // Solo incluir publishDate si el usuario seleccionó una fecha explícitamente.
+    // Si está vacío, se omite para que el servidor no sobrescriba el valor existente.
+    if (publishDateInput.value) {
+      postData.publishDate = new Date(publishDateInput.value).toISOString()
     }
 
     if (isEditing.value && postId.value) {
@@ -317,5 +322,37 @@ const savePost = async () => {
   color: #adb5bd;
   pointer-events: none;
   height: 0;
+}
+
+/* ── Heading styles dentro del editor (igualan la visualización del post) ──── */
+.ProseMirror h2 {
+  font-size: 1.5em;
+  font-weight: 700;
+  line-height: 1.3;
+  margin-top: 1.6em;
+  margin-bottom: 0.6em;
+  color: #1A202C;
+  font-family: 'Open Sans', ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: -0.025em;
+}
+.ProseMirror h3 {
+  font-size: 1.25em;
+  font-weight: 700;
+  line-height: 1.4;
+  margin-top: 1.4em;
+  margin-bottom: 0.5em;
+  color: #1A202C;
+  font-family: 'Open Sans', ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: -0.025em;
+}
+.ProseMirror h4 {
+  font-size: 1.1em;
+  font-weight: 700;
+  line-height: 1.5;
+  margin-top: 1.2em;
+  margin-bottom: 0.4em;
+  color: #1A202C;
+  font-family: 'Open Sans', ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: -0.025em;
 }
 </style>
