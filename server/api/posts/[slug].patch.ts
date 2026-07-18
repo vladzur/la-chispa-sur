@@ -23,7 +23,9 @@ export default defineEventHandler(async (event) => {
     if (body.headerImageUrl !== undefined) updates.headerImageUrl = body.headerImageUrl
     if (body.headerImageAlt !== undefined) updates.headerImageAlt = body.headerImageAlt
     if (body.published !== undefined) updates.published = body.published
-    if (body.publishDate !== undefined) updates.publishDate = body.publishDate ? new Date(body.publishDate) : FieldValue.serverTimestamp()
+    // Solo actualizar publishDate si el cliente envía un valor no-vacío.
+    // Si viene undefined o string vacío, se preserva el valor existente en Firestore.
+    if (body.publishDate) updates.publishDate = new Date(body.publishDate as string)
     if (body.category !== undefined) updates.category = body.category
     if (body.isFeatured !== undefined) updates.isFeatured = body.isFeatured
 
