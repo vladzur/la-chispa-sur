@@ -14,7 +14,7 @@
         {{ post.title }}
       </h1>
       <div class="text-sm font-sans tracking-wide text-gray-500 uppercase flex items-center justify-center space-x-2 font-medium mb-6">
-        <span>{{ formatDate(post.createdAt) }}</span>
+        <span>{{ formatDate(post.publishDate) }}</span>
         <span v-if="post.authorName">&bull; {{ post.authorName }}</span>
       </div>
 
@@ -174,8 +174,8 @@ useHead({
           headline: post.value.title,
           description: description.value,
           url: postUrl.value,
-          datePublished: post.value.createdAt,
-          dateModified: post.value.updatedAt || post.value.createdAt,
+          datePublished: post.value.publishDate,
+          dateModified: post.value.updatedAt || post.value.publishDate,
           image: post.value.headerImageUrl
             ? { '@type': 'ImageObject', url: post.value.headerImageUrl, width: 800, height: 450 }
             : undefined,

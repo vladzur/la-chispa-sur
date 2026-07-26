@@ -63,9 +63,9 @@ if (props.isLcp && props.post.headerImageUrl) {
 }
 
 const formattedDate = computed(() => {
-  if (!props.post.createdAt) return ''
-  // createdAt ya viene como ISO string desde el servidor (serializado)
-  const date = new Date(props.post.createdAt)
+  if (!props.post.publishDate) return ''
+  // publishDate ya viene como ISO string desde el servidor (serializado)
+  const date = new Date(props.post.publishDate)
   return new Intl.DateTimeFormat('es-CL', {
     day: 'numeric',
     month: 'long',

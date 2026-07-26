@@ -91,8 +91,8 @@ if (props.post.headerImageUrl) {
 }
 
 const formattedDate = computed(() => {
-  if (!props.post.createdAt) return ''
-  const date = new Date(props.post.createdAt)
+  if (!props.post.publishDate) return ''
+  const date = new Date(props.post.publishDate)
   return new Intl.DateTimeFormat('es-CL', {
     day: 'numeric',
     month: 'long',
