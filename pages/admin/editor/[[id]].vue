@@ -12,7 +12,7 @@
     <form @submit.prevent="savePost" class="space-y-6">
       <!-- Título -->
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Título</label>
+        <label for="editor-title" class="block text-sm font-medium text-gray-700 mb-1">Título</label>
         <input
           id="editor-title"
           v-model="title"
@@ -26,8 +26,9 @@
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <!-- Categoría -->
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Categoría</label>
+          <label for="editor-category" class="block text-sm font-medium text-gray-700 mb-1">Categoría</label>
           <select
+            id="editor-category"
             v-model="category"
             class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-primary shadow-sm outline-none bg-white"
           >
@@ -58,7 +59,7 @@
 
       <!-- Imagen de cabecera -->
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Imagen de Cabecera</label>
+        <label for="editor-image" class="block text-sm font-medium text-gray-700 mb-1">Imagen de Cabecera</label>
         <input
           id="editor-image"
           type="file"
@@ -163,16 +164,10 @@ const saving = ref(false)
 const published = ref(true)
 const publishDateInput = ref('')  // formato datetime-local (YYYY-MM-DDTHH:mm) para el input
 const isFeatured = ref(false)
-const category = ref('Actualidad')
+const category = ref<string>(DEFAULT_CATEGORY)
 
-const categories = [
-  'Actualidad',
-  'Nacional',
-  'Regional',
-  'Política',
-  'Cultura',
-  'Opinión'
-]
+// Categorías oficiales del sitio (fuente única: utils/categories.ts)
+const categories = NEWS_CATEGORIES
 
 // ── Tiptap editor (solo cliente) ─────────────────────────────────────────────
 const editor = useEditor({
@@ -224,7 +219,7 @@ onMounted(async () => {
       headerImageAlt.value = post.headerImageAlt || ''
       published.value = post.published !== false
       isFeatured.value = post.isFeatured || false
-      category.value = post.category || 'Actualidad'
+      category.value = post.category || DEFAULT_CATEGORY
       if (post.publishDate) publishDateInput.value = toDatetimeLocal(post.publishDate)
       if (editor.value) editor.value.commands.setContent(post.content)
     } finally {
