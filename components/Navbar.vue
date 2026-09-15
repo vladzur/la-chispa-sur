@@ -89,14 +89,8 @@ const router = useRouter()
 
 const isMenuOpen = ref(false)
 
-const categories = [
-  'Actualidad',
-  'Nacional',
-  'Regional',
-  'Política',
-  'Cultura',
-  'Opinión'
-]
+// Categorías oficiales del sitio (fuente única: utils/categories.ts)
+const categories = NEWS_CATEGORIES
 
 const handleSignOut = async () => {
   await authStore.signOut()

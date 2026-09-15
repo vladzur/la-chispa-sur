@@ -2,6 +2,7 @@
 // Reemplaza la Firebase Function generateSitemap
 // Accesible en: GET /sitemap.xml
 import { getPublishedPosts } from '~/server/utils/postService'
+import { mergeWithNewsCategories } from '~/utils/categories'
 
 export default defineEventHandler(async (event) => {
   const SITE_URL = 'https://lachispasur.cl'
@@ -22,12 +23,17 @@ export default defineEventHandler(async (event) => {
       })
       .join('')
 
-    // URLs de categorías — extraídas de los posts publicados
-    const categories = [...new Set(posts.map(p => p.category).filter(Boolean))]
+    // URLs de categorías — se incluyen todas las secciones oficiales del sitio
+    // (aunque todavía no tengan artículos publicados) más las categorías
+    // encontradas en los posts.
+    const postCategories = posts
+      .map(p => p.category)
+      .filter((cat): cat is string => Boolean(cat))
+    const categories = mergeWithNewsCategories(postCategories)
     const categoryUrls = categories
       .map(cat => `
   <url>
-    <loc>${SITE_URL}/category/${encodeURIComponent(cat as string)}</loc>
+    <loc>${SITE_URL}/category/${encodeURIComponent(cat)}</loc>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>`)
