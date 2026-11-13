@@ -31,6 +31,14 @@
           >
             {{ cat }}
           </NuxtLink>
+          <!-- Sección independiente: no es una categoría de noticias -->
+          <NuxtLink
+            to="/cartas-al-director"
+            class="px-3 py-2 rounded-md hover:bg-white/10 transition-colors font-medium text-sm uppercase tracking-wider"
+            active-class="bg-white/20"
+          >
+            Cartas al Director
+          </NuxtLink>
         </div>
 
         <!-- Acciones / Admin -->
@@ -78,6 +86,14 @@
         @click="isMenuOpen = false"
       >
         {{ cat }}
+      </NuxtLink>
+      <!-- Sección independiente: no es una categoría de noticias -->
+      <NuxtLink
+        to="/cartas-al-director"
+        class="block px-4 py-3 rounded-md hover:bg-white/10 transition-colors font-medium text-base uppercase tracking-widest"
+        @click="isMenuOpen = false"
+      >
+        Cartas al Director
       </NuxtLink>
     </div>
   </nav>

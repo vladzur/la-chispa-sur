@@ -80,6 +80,23 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // ── Cartas al Director ───────────────────────────────────────────────────
+    match /letters/{letterId} {
+      // Cualquier persona puede leer las cartas (el sitio las sirve vía API)
+      allow read: if true;
+
+      // Crear: admin o editor aprobado
+      allow create: if isApproved();
+
+      // Eliminar: solo admin
+      allow delete: if isAdmin();
+
+      // Actualizar: admin puede todo; editor solo sus propias cartas (excepto campos protegidos)
+      allow update: if isAdmin()
+                    || (isEditor() && resource.data.authorId == request.auth.uid
+                        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['authorId', 'createdAt']));
+    }
+
     // ── Denegación por defecto ────────────────────────────────────────────────
     match /{document=**} {
       allow read, write: if false;
