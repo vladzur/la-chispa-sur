@@ -2,13 +2,14 @@
 // Reemplaza la Firebase Function generateSitemap
 // Accesible en: GET /sitemap.xml
 import { getPublishedPosts } from '~/server/utils/postService'
+import { getPublishedLetters } from '~/server/utils/letterService'
 import { mergeWithNewsCategories } from '~/utils/categories'
 
 export default defineEventHandler(async (event) => {
   const SITE_URL = 'https://lachispasur.cl'
 
   try {
-    const posts = await getPublishedPosts()
+    const [posts, letters] = await Promise.all([getPublishedPosts(), getPublishedLetters()])
 
     const postUrls = posts
       .map((p) => {
@@ -19,6 +20,27 @@ export default defineEventHandler(async (event) => {
     <loc>${loc}</loc>${lastmod ? `\n    <lastmod>${lastmod}</lastmod>` : ''}
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+  </url>`
+      })
+      .join('')
+
+    // URLs de cartas al director — listado de la sección + cada carta publicada
+    const lettersSectionUrl = `
+  <url>
+    <loc>${SITE_URL}/cartas-al-director</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>`
+
+    const letterUrls = letters
+      .map((l) => {
+        const loc = `${SITE_URL}/cartas-al-director/${l.slug || l.id}`
+        const lastmod = l.updatedAt ? l.updatedAt.split('T')[0] : ''
+        return `
+  <url>
+    <loc>${loc}</loc>${lastmod ? `\n    <lastmod>${lastmod}</lastmod>` : ''}
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
   </url>`
       })
       .join('')
@@ -45,7 +67,7 @@ export default defineEventHandler(async (event) => {
     <loc>${SITE_URL}/</loc>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
-  </url>${categoryUrls}${postUrls}
+  </url>${categoryUrls}${lettersSectionUrl}${postUrls}${letterUrls}
 </urlset>`
 
     setHeader(event, 'Content-Type', 'application/xml; charset=utf-8')

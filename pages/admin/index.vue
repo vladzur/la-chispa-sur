@@ -12,6 +12,14 @@
         📰 Noticias
       </button>
       <button
+        id="tab-letters"
+        class="tab-btn"
+        :class="{ 'tab-btn--active': activeTab === 'letters' }"
+        @click="activeTab = 'letters'; loadLetters()"
+      >
+        ✉️ Cartas
+      </button>
+      <button
         v-if="authStore.isAdmin"
         id="tab-editors"
         class="tab-btn"
@@ -56,6 +64,44 @@
               <NuxtLink :to="`/post/${post.slug || post.id}`" target="_blank" class="action-link action-link--view">Ver</NuxtLink>
               <NuxtLink :to="`/admin/editor/${post.id}`" class="action-link action-link--edit">Editar</NuxtLink>
               <button id="btn-delete-post" @click="handleDelete(post.id)" class="action-link action-link--delete">Borrar</button>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ─── TAB: CARTAS AL DIRECTOR ──────────────────────────────────────────── -->
+    <div v-show="activeTab === 'letters'" class="tab-content">
+      <div class="section-header">
+        <h1 class="section-title">Cartas al Director</h1>
+        <NuxtLink to="/admin/carta" class="btn-primary">+ Redactar</NuxtLink>
+      </div>
+
+      <div v-if="lettersLoading" class="loading-state">
+        <div class="spinner"></div>
+      </div>
+      <div v-else-if="letters.length === 0" class="empty-state">
+        <p class="empty-text">No hay cartas registradas aún.</p>
+        <NuxtLink to="/admin/carta" class="link">Ingresa la primera carta aquí</NuxtLink>
+      </div>
+      <div v-else class="list-card">
+        <ul class="list">
+          <li v-for="letter in letters" :key="letter.id" class="list-item">
+            <div class="list-item__info">
+              <div class="list-item__title-row">
+                <span class="list-item__title">{{ letter.title }}</span>
+                <span v-if="letter.published === false" class="badge badge--draft">Borrador</span>
+                <span v-else-if="isScheduled(letter)" class="badge badge--scheduled">🕐 Programada</span>
+              </div>
+              <div class="list-item__meta">
+                <span>{{ formatLetterSignature(letter.senderName, letter.senderCity) }}</span>
+                <span> · {{ formatDate(letter.publishDate) }}</span>
+              </div>
+            </div>
+            <div class="list-item__actions">
+              <NuxtLink :to="`/cartas-al-director/${letter.slug || letter.id}`" target="_blank" class="action-link action-link--view">Ver</NuxtLink>
+              <NuxtLink :to="`/admin/carta/${letter.id}`" class="action-link action-link--edit">Editar</NuxtLink>
+              <button @click="handleDeleteLetter(letter.id)" class="action-link action-link--delete">Borrar</button>
             </div>
           </li>
         </ul>
@@ -160,6 +206,7 @@
 
 <script setup lang="ts">
 import type { Post } from '~/types/post'
+import type { Letter } from '~/types/letter'
 
 // ── Auth guard — solo editores aprobados ─────────────────────────────────────
 definePageMeta({
@@ -173,7 +220,7 @@ useSeoMeta({ title: 'Panel de administración', robots: 'noindex' })
 const authStore = useAuthStore()
 
 // ── TAB: Noticias ─────────────────────────────────────────────────────────────
-const activeTab = ref<'posts' | 'editors'>('posts')
+const activeTab = ref<'posts' | 'letters' | 'editors'>('posts')
 const posts = ref<Post[]>([])
 const postsLoading = ref(true)
 
@@ -192,7 +239,7 @@ const loadPosts = async () => {
 
 onMounted(loadPosts)
 
-const isScheduled = (post: Post) => post.publishDate && new Date(post.publishDate) > new Date()
+const isScheduled = (item: { publishDate?: string }) => item.publishDate && new Date(item.publishDate) > new Date()
 
 const formatDate = (iso: string | null | undefined) => {
   if (!iso) return ''
@@ -203,6 +250,28 @@ const handleDelete = async (id: string) => {
   if (!confirm('¿Estás seguro de que quieres borrar esta noticia?')) return
   await useAuthFetch(`/api/posts/${id}`, { method: 'DELETE' })
   await loadPosts()
+}
+
+// ── TAB: Cartas al Director ───────────────────────────────────────────────────
+const letters = ref<Letter[]>([])
+const lettersLoading = ref(false)
+
+const loadLetters = async () => {
+  lettersLoading.value = true
+  try {
+    // Usar la API route — incluye borradores para el admin
+    letters.value = await useAuthFetch<Letter[]>('/api/letters/all')
+  } catch {
+    letters.value = []
+  } finally {
+    lettersLoading.value = false
+  }
+}
+
+const handleDeleteLetter = async (id: string) => {
+  if (!confirm('¿Estás seguro de que quieres borrar esta carta?')) return
+  await useAuthFetch(`/api/letters/${id}`, { method: 'DELETE' })
+  await loadLetters()
 }
 
 // ── TAB: Editores ─────────────────────────────────────────────────────────────
