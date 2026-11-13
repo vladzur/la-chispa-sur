@@ -1,6 +1,43 @@
 <!-- components/Navbar.vue -->
 <template>
   <nav class="bg-primary text-white shadow-md">
+    <!-- Barra utilitaria (solo escritorio): secciones institucionales y de participación.
+         Mantiene la navbar principal exclusiva para las categorías de noticias. -->
+    <div class="hidden md:block bg-black/20 border-b border-white/10">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-end space-x-6 h-8 text-xs font-medium uppercase tracking-wider">
+          <NuxtLink
+            to="/cartas-al-director"
+            class="text-white/60 hover:text-white transition-colors"
+            active-class="text-white"
+          >
+            Cartas al Director
+          </NuxtLink>
+          <NuxtLink
+            to="/quienes-somos"
+            class="text-white/60 hover:text-white transition-colors"
+            active-class="text-white"
+          >
+            Quiénes Somos
+          </NuxtLink>
+          <NuxtLink
+            to="/linea-editorial"
+            class="text-white/60 hover:text-white transition-colors"
+            active-class="text-white"
+          >
+            Línea Editorial
+          </NuxtLink>
+          <NuxtLink
+            to="/contacto"
+            class="text-white/60 hover:text-white transition-colors"
+            active-class="text-white"
+          >
+            Contacto
+          </NuxtLink>
+        </div>
+      </div>
+    </div>
+
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex justify-between h-16 items-center">
         <!-- Logo -->
@@ -30,14 +67,6 @@
             active-class="bg-white/20"
           >
             {{ cat }}
-          </NuxtLink>
-          <!-- Sección independiente: no es una categoría de noticias -->
-          <NuxtLink
-            to="/cartas-al-director"
-            class="px-3 py-2 rounded-md hover:bg-white/10 transition-colors font-medium text-sm uppercase tracking-wider"
-            active-class="bg-white/20"
-          >
-            Cartas al Director
           </NuxtLink>
         </div>
 
@@ -110,6 +139,6 @@ const categories = NEWS_CATEGORIES
 
 const handleSignOut = async () => {
   await authStore.signOut()
-  router.push('/')
+  await router.push('/')
 }
 </script>
