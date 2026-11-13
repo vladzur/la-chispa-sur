@@ -1,4 +1,4 @@
-import { getAdminAuth, getAdminDb } from '../utils/firebaseAdmin'
+import { getAdminAuth } from '../utils/firebaseAdmin'
 
 export default defineEventHandler(async (event) => {
   const path = event.path.split('?')[0]
@@ -19,6 +19,17 @@ export default defineEventHandler(async (event) => {
       requiresAuth = true
     } else if (method !== 'GET' && !path.endsWith('/kudos')) {
       requiresAuth = true // POST, PATCH, DELETE requieren auth, excepto kudos
+    }
+  }
+
+  // ── RUTAS DE CARTAS AL DIRECTOR (LETTERS) ──
+  if (path.startsWith('/api/letters')) {
+    // /api/letters y /api/letters/[slug] con GET son públicos
+    // /api/letters/all es protegido
+    if (path.includes('/all')) {
+      requiresAuth = true
+    } else if (method !== 'GET') {
+      requiresAuth = true // POST, PATCH, DELETE requieren auth
     }
   }
 
