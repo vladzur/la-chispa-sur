@@ -2,7 +2,22 @@
 // Lógica de Firestore server-side usando Admin SDK
 // Reemplaza src/services/postService.ts (que usaba Client SDK)
 import { getAdminDb } from './firebaseAdmin'
-import type { DocumentSnapshot } from 'firebase-admin/firestore'
+import type { DocumentSnapshot, Query } from 'firebase-admin/firestore'
+
+/** Tamaño de página por defecto y tope duro para las listas públicas. */
+export const PAGE_DEFAULT = 12
+export const PAGE_MAX = 50
+
+export interface PageOpts {
+  limit?: number
+  cursor?: string
+  category?: string
+}
+
+export interface PostPage {
+  items: Post[]
+  nextCursor: string | null
+}
 
 export interface Post {
   id: string
@@ -84,6 +99,8 @@ export const getPostBySlugOrId = async (slugOrId: string): Promise<Post | null> 
 
 /**
  * Lista todos los posts publicados ordenados por fecha descendente.
+ * Uso interno (sitemap, RSS): necesitan el corpus completo para generar URLs.
+ * No se expone como API pública; para eso está getPublishedPostsPage().
  */
 export const getPublishedPosts = async (): Promise<Post[]> => {
   const db = getAdminDb()
@@ -102,20 +119,64 @@ export const getPublishedPosts = async (): Promise<Post[]> => {
 }
 
 /**
- * Lista posts publicados filtrados por categoría.
+ * Página de posts públicos: filtra `published` y la fecha de publicación
+ * EN LA CONSULTA (no en memoria) y pagina con cursor sobre `publishDate`.
+ *
+ * Requiere los índices compuestos declarados en `firestore.indexes.json`:
+ *   posts: published ASC, publishDate DESC
+ *   posts: published ASC, category ASC, publishDate DESC
  */
-export const getPostsByCategory = async (category: string): Promise<Post[]> => {
+export const getPublishedPostsPage = async (opts: PageOpts = {}): Promise<PostPage> => {
   const db = getAdminDb()
+  const limit = Math.min(Math.max(opts.limit ?? PAGE_DEFAULT, 1), PAGE_MAX)
 
-  // Obtenemos todos ordenados por publishDate y filtramos en memoria para evitar errores de índice compuesto
+  let q: Query = db
+    .collection('posts')
+    .where('published', '==', true)
+    .where('publishDate', '<=', new Date())
+    .orderBy('publishDate', 'desc')
+
+  if (opts.category) q = q.where('category', '==', opts.category)
+
+  if (opts.cursor) {
+    const cursorDate = new Date(opts.cursor)
+    // Cursor inválido: se ignora y se empieza desde la primera página
+    if (!Number.isNaN(cursorDate.getTime())) q = q.startAfter(cursorDate)
+  }
+
+  // +1 para saber si hay página siguiente sin un count extra
+  const snapshot = await q.limit(limit + 1).get()
+  const docs = snapshot.docs.slice(0, limit)
+  const hasMore = snapshot.docs.length > limit
+  const lastDate = docs[docs.length - 1]?.get('publishDate')
+
+  return {
+    items: docs.map(toPost),
+    nextCursor: hasMore && typeof lastDate?.toDate === 'function'
+      ? lastDate.toDate().toISOString()
+      : null,
+  }
+}
+
+/**
+ * Posts publicados de una categoría, filtrados y acotados en la consulta.
+ * El tope es PAGE_MAX (50), muy por encima del mayor volumen actual por
+ * categoría (19), así que hoy no recorta nada visible.
+ */
+export const getPostsByCategory = async (category: string, limit = PAGE_MAX): Promise<Post[]> => {
+  const db = getAdminDb()
+  const cap = Math.min(Math.max(limit, 1), PAGE_MAX)
+
   const snapshot = await db
     .collection('posts')
+    .where('category', '==', category)
+    .where('published', '==', true)
+    .where('publishDate', '<=', new Date())
     .orderBy('publishDate', 'desc')
+    .limit(cap)
     .get()
 
-  return snapshot.docs
-    .map(toPost)
-    .filter((p) => isPubliclyVisible(p) && p.category === category)
+  return snapshot.docs.map(toPost)
 }
 
 /**

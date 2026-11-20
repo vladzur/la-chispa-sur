@@ -16,3 +16,9 @@ export interface Post {
   category?: string
   isFeatured?: boolean
 }
+
+/** Página de artículos devuelta por GET /api/posts (paginada por cursor). */
+export interface PostPage {
+  items: Post[]
+  nextCursor: string | null
+}
