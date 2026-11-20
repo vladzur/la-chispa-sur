@@ -15,14 +15,6 @@ service cloud.firestore {
       return isAdmin() || isEditor();
     }
 
-    // Verifica que la escritura solo modifica kudosCount y que el valor sube
-    function isKudosOnlyUpdate() {
-      let incoming = request.resource.data;
-      let existing = resource.data;
-      return incoming.diff(existing).affectedKeys().hasOnly(['kudosCount'])
-          && incoming.kudosCount > existing.get('kudosCount', 0);
-    }
-
     // ── Posts ────────────────────────────────────────────────────────────────
     match /posts/{postId} {
       // Cualquier persona puede leer las noticias publicadas; admin/editores ven borradores
@@ -34,12 +26,11 @@ service cloud.firestore {
       // Eliminar: solo admin
       allow delete: if isAdmin();
 
-      // Actualizar: admin puede todo; editor solo sus propios posts (excepto campos protegidos);
-      // anónimos SOLO pueden incrementar kudosCount
+      // Actualizar: admin puede todo; editor solo sus propios posts (excepto campos protegidos).
+      // Los kudos se gestionan server-side vía /api/posts/:slug/kudos
       allow update: if isAdmin()
                     || (isEditor() && resource.data.authorId == request.auth.uid
-                        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['authorId', 'createdAt']))
-                    || isKudosOnlyUpdate();
+                        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['authorId', 'createdAt']));
     }
 
     // ── Usuarios ─────────────────────────────────────────────────────────────
