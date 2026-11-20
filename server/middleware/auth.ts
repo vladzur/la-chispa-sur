@@ -14,9 +14,10 @@ export default defineEventHandler(async (event) => {
   // ── RUTAS DE NOTICIAS (POSTS) ──
   if (path.startsWith('/api/posts')) {
     // /api/posts y /api/posts/[slug] con GET son públicos
-    // /api/posts/all es protegido
+    // /api/posts/all incluye borradores de todos: solo admin
     if (path.includes('/all')) {
       requiresAuth = true
+      requiresAdmin = true
     } else if (method !== 'GET' && !path.endsWith('/kudos')) {
       requiresAuth = true // POST, PATCH, DELETE requieren auth, excepto kudos
     }
@@ -25,9 +26,10 @@ export default defineEventHandler(async (event) => {
   // ── RUTAS DE CARTAS AL DIRECTOR (LETTERS) ──
   if (path.startsWith('/api/letters')) {
     // /api/letters y /api/letters/[slug] con GET son públicos
-    // /api/letters/all es protegido
+    // /api/letters/all incluye borradores de todos: solo admin
     if (path.includes('/all')) {
       requiresAuth = true
+      requiresAdmin = true
     } else if (method !== 'GET') {
       requiresAuth = true // POST, PATCH, DELETE requieren auth
     }
