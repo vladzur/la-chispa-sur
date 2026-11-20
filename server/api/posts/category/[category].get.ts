@@ -8,8 +8,15 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, message: 'Categoría requerida' })
   }
 
+  // Tope opcional por query; el servicio acota igual a PAGE_MAX
+  const { limit } = getQuery(event)
+  const parsedLimit = typeof limit === 'string' ? Number(limit) : NaN
+
   try {
-    const posts = await getPostsByCategory(category)
+    const posts = await getPostsByCategory(
+      category,
+      Number.isFinite(parsedLimit) && parsedLimit > 0 ? parsedLimit : undefined
+    )
     // Cache: 60s en CDN
     setHeader(event, 'Cache-Control', 'public, max-age=60, stale-while-revalidate=300')
     return posts

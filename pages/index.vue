@@ -51,7 +51,7 @@
 </template>
 
 <script setup lang="ts">
-import type { Post } from '~/types/post'
+import type { Post, PostPage } from '~/types/post'
 
 definePageMeta({ layout: 'default' })
 
@@ -67,11 +67,37 @@ useSeoMeta({
   twitterCard: 'summary_large_image',
 })
 
-const { data: allPosts } = await useAsyncData<Post[]>(
+const HOME_PAGE_SIZE = 20
+const SECTION_SIZE = 3
+
+// Página principal: la destacada y las 9 recientes salen de aquí (paginado)
+const postsQuery = await useAsyncData<PostPage>(
   'posts-home',
-  () => $fetch<Post[]>('/api/posts'),
+  () => $fetch<PostPage>(`/api/posts?limit=${HOME_PAGE_SIZE}`),
   {
-    default: () => [] as Post[],
+    default: () => ({ items: [], nextCursor: null }) as PostPage,
+  }
+)
+
+const allPosts = computed(() => postsQuery.data.value.items)
+
+// Secciones por categoría: 3 notas de cada categoría oficial, una petición por
+// categoría con límite acotado (antes la portada descargaba el corpus completo).
+const sectionsQuery = await useAsyncData<Record<string, Post[]>>(
+  'posts-home-sections',
+  async () => {
+    const pairs = await Promise.all(
+      NEWS_CATEGORIES.map(async (category) => {
+        const page = await $fetch<PostPage>(
+          `/api/posts?category=${encodeURIComponent(category)}&limit=${SECTION_SIZE + 1}`
+        )
+        return [category, page.items] as const
+      })
+    )
+    return Object.fromEntries(pairs)
+  },
+  {
+    default: () => ({} as Record<string, Post[]>),
   }
 )
 
@@ -80,7 +106,7 @@ const featuredPost = computed(() => {
   return allPosts.value.find(p => p.isFeatured) || allPosts.value[0]
 })
 
-// 2. Resto de los posts (excluyendo el destacado actual)
+// 2. Resto de los posts de la primera página (excluyendo el destacado actual)
 const remainingPosts = computed(() => {
   if (!featuredPost.value) return []
   return allPosts.value.filter(p => p.id !== featuredPost.value?.id)
@@ -91,33 +117,27 @@ const recentPosts = computed(() => {
   return remainingPosts.value.slice(0, 9)
 })
 
-// 4. Posts para categorías (excluyendo destacado y los 9 recientes)
-const categoryPosts = computed(() => {
-  const recentIds = new Set(recentPosts.value.map(p => p.id))
-  return remainingPosts.value.filter(p => !recentIds.has(p.id))
+// 4. IDs ya visibles arriba, para no repetirlos en las secciones de categoría
+const topIds = computed(() => {
+  const ids = recentPosts.value.map(p => p.id)
+  if (featuredPost.value) ids.push(featuredPost.value.id)
+  return new Set(ids)
 })
 
 // 5. Agrupar posts por categoría, respetando el orden oficial de las secciones
 //    (fuente única: utils/categories.ts)
 const groupedPosts = computed(() => {
   const groups: Record<string, Post[]> = {}
+  const sections = sectionsQuery.data.value
 
-  // Agrupar los posts por su categoría
-  categoryPosts.value.forEach(post => {
-    const cat = post.category || DEFAULT_CATEGORY
-    if (!groups[cat]) groups[cat] = []
-    groups[cat].push(post)
-  })
+  for (const category of sortCategories(Object.keys(sections))) {
+    const posts = (sections[category] || [])
+      .filter(post => !topIds.value.has(post.id))
+      .slice(0, SECTION_SIZE)
 
-  // Retornar un objeto ordenado (solo las categorías que existen en los posts)
-  const sortedGroups: Record<string, Post[]> = {}
-  sortCategories(Object.keys(groups)).forEach(cat => {
-    const posts = groups[cat]
-    if (posts && posts.length > 0) {
-      sortedGroups[cat] = posts
-    }
-  })
+    if (posts.length > 0) groups[category] = posts
+  }
 
-  return sortedGroups
+  return groups
 })
 </script>
