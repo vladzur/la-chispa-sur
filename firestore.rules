@@ -63,18 +63,14 @@ service cloud.firestore {
 
     // ── Tokens de invitación ─────────────────────────────────────────────────
     match /inviteTokens/{token} {
-      // Lectura pública: front-end valida si el token existe y es válido
-      allow read: if true;
+      // Solo Admin SDK (servidor). El cliente valida vía /api/admin/invite/:token
+      allow read: if false;
 
       // Solo admin puede crear tokens de invitación
       allow create: if isAdmin();
 
-      // Marcar como usado: solo el usuario autenticado que se está registrando
-      // (actualización parcial: solo puede cambiar el campo 'used' a true y agregar 'usedBy')
-      allow update: if request.auth != null
-                    && resource.data.used == false
-                    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['used', 'usedBy', 'usedAt'])
-                    && request.resource.data.used == true;
+      // La redención la hace el servidor en transacción (Admin SDK)
+      allow update: if false;
 
       // Nadie puede eliminar tokens desde el cliente
       allow delete: if false;
