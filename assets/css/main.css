@@ -19,6 +19,7 @@
   --color-bg-light:      #F7FAFC; /* Off-white       */
   --color-text-body:     #4A5568; /* Body text gray  */
   --color-text-heading:  #1A202C; /* Heading near-black */
+  --color-lead:          #3E65A0; /* Bajada de titular */
 
   /* Tipografía */
   --font-sans: 'Open Sans', ui-sans-serif, system-ui, -apple-system,
@@ -55,6 +56,11 @@
 
 .prose p {
   @apply font-serif leading-relaxed text-lg;
+}
+
+/* Bajada de titular — el párrafo de entrada se marca en cursiva (<em>) */
+.prose em {
+  color: var(--color-lead);
 }
 
 /* ── Utilidades adicionales (no incluidas en Tailwind por defecto) ────────── */
